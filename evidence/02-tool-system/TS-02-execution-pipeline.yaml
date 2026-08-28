@@ -1,0 +1,7 @@
+id: "TS-02"
+chapter: "02-tool-system"
+question: "arguments 在 execute 前经过什么顺序？"
+claim: "运行时先调用可选 prepareArguments，再进行 schema validation，最后才进入 beforeToolCall 与 execute。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "prepareToolCall", lines: "600-668" }
+verification: { method: "trace fixed-source control flow", status: "verified" }
+notes: ["prepareArguments 是兼容 shim，不是权限 hook。"]

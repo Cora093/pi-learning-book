@@ -1,0 +1,7 @@
+id: "TS-09"
+chapter: "02-tool-system"
+question: "未知、校验失败与 execute throw 怎样返回？"
+claim: "这些失败都归一化为 text AgentToolResult，并最终生成 isError=true 的 ToolResultMessage，而不是炸出 Agent Loop。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "prepareToolCall, executePreparedToolCall, createErrorToolResult", lines: "600-765" }
+verification: { method: "trace failure branches", status: "verified" }
+notes: ["普通 return 不会因 content 像错误而自动设置 isError。"]

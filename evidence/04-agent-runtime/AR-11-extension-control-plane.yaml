@@ -1,0 +1,7 @@
+id: "AR-11"
+chapter: "04-agent-runtime"
+question: "Extension 如何改变 Runtime 行为？"
+claim: "Extension runner 可注册 command/tool/provider，并在 before_agent_start、context、tool_call、tool_result 等 hook 上注入、阻断或改写。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/extensions/runner.ts", symbol: "emitBeforeAgentStart, emitContext, emitToolCall, emitToolResult", lines: "877-1014,1081-1145" }
+verification: { method: "read ExtensionRunner control flow", status: "verified" }
+notes: ["Session replacement 会 invalidate 旧 extension context。"]

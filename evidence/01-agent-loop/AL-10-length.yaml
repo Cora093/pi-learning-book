@@ -1,0 +1,20 @@
+id: "AL-10"
+chapter: "01-agent-loop"
+question: "输出被 length 截断时，残留 Tool Call 会执行吗？"
+claim: "stopReason 为 length 时，该 AssistantMessage 中的所有 tool calls 都不会真实执行，而会生成错误 ToolResultMessage 并让模型有机会重试。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "failToolCallsFromTruncatedMessage"
+  lines: "374-405"
+supporting_sources:
+  - file: "packages/agent/test/agent-loop.test.ts"
+    symbol: "it(should not execute tool calls from a length-truncated assistant message)"
+verification:
+  method: "source-read-and-test-source-read"
+  status: "verified"
+notes:
+  - "上游依赖未安装，本次没有执行测试。"

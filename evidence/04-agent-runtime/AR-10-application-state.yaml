@@ -1,0 +1,7 @@
+id: "AR-10"
+chapter: "04-agent-runtime"
+question: "业务 Application state 会被 Session 自动保存吗？"
+claim: "Session 只保存已定义 entry；扩展或宿主必须用 custom entry 或自己的持久层显式保存并重建业务状态。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/session-manager.ts", symbol: "CustomEntry, appendCustomEntry, appendCustomMessageEntry", lines: "94-153,1121-1188" }
+verification: { method: "read entry contracts and context conversion", status: "verified" }
+notes: ["CustomEntry 不进 LLM Context，CustomMessageEntry 才进。"]

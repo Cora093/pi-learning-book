@@ -1,0 +1,7 @@
+id: "AR-09"
+chapter: "04-agent-runtime"
+question: "Resume、branch 与 fork 有什么区别？"
+claim: "open/continueRecent 继续同一文件，branch 在同一文件移动 leaf，createBranchedSession 和 forkFrom 则创建新 session 文件。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/session-manager.ts", symbol: "SessionManager.open, continueRecent, branch, createBranchedSession, forkFrom", lines: "1354-1631" }
+verification: { method: "read file operations and branching tests", status: "verified" }
+notes: ["这些操作不能统称为恢复会话。"]

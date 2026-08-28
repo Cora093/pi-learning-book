@@ -1,0 +1,7 @@
+id: "AE-01"
+chapter: "05-application-engineering"
+question: "AgentEvent 能否直接作为完整产品 trace？"
+claim: "AgentEvent 提供 Run、Turn、message 与 tool 的实时事件骨架，但没有统一 event id、run id 或接收时间；应用仍需关联和存储。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/types.ts", symbol: "AgentEvent", lines: "421-443" }
+verification: { method: "trace event contract and emit sites", status: "verified" }
+notes: ["Core events 是 trace 原料，不是 trace backend。"]

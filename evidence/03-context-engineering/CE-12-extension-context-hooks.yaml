@@ -1,0 +1,7 @@
+id: "CE-12"
+chapter: "03-context-engineering"
+question: "before_agent_start 与 context hook 时机有何不同？"
+claim: "before_agent_start 可在 Run 前追加 system prompt 或消息；context hook 经 Agent.transformContext 在每次 provider 调用前重写 messages。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/extensions/runner.ts", symbol: "emitBeforeAgentStart, emitContext", lines: null }
+verification: { method: "trace extension hooks into AgentSession and SDK", status: "verified" }
+notes: ["两者不能同时任意替换 system/messages/tools。"]

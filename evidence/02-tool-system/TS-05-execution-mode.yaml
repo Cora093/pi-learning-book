@@ -1,0 +1,7 @@
+id: "TS-05"
+chapter: "02-tool-system"
+question: "工具批次怎样选择并行或串行？"
+claim: "默认并行；全局 sequential 或批次内任一目标工具 executionMode=sequential 都会让整批串行。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "executeToolCalls", lines: "411-426" }
+verification: { method: "read implementation and scheduling tests", status: "verified" }
+notes: ["per-tool parallel 不能覆盖全局 sequential。"]

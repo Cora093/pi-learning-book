@@ -1,0 +1,17 @@
+id: "AL-12"
+chapter: "01-agent-loop"
+question: "terminate=true 是否无条件结束整个 Run？"
+claim: "terminate 只关闭工具批次带来的自动续轮；当前 Turn 后的 steering 或 follow-up 仍可能让同一个 Run 继续。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "runLoop"
+  lines: "211-268"
+verification:
+  method: "source-read"
+  status: "verified"
+notes:
+  - "上游没有 terminate 与队列同时出现的组合测试；本结论来自明确控制流。"

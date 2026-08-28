@@ -1,0 +1,7 @@
+id: "TS-08"
+chapter: "02-tool-system"
+question: "onUpdate 会进入模型上下文吗？"
+claim: "onUpdate 只产生 tool_execution_update 事件；execute settle 后的最终结果才转换成 ToolResultMessage。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "executePreparedToolCall", lines: "670-711" }
+verification: { method: "trace update and final-result paths", status: "verified" }
+notes: ["promise settle 后的迟到 update 会被忽略。"]

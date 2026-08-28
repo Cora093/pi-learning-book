@@ -1,0 +1,7 @@
+id: "TS-14"
+chapter: "02-tool-system"
+question: "统一 Tool 协议怎样进入不同 provider？"
+claim: "provider adapter 把统一 Tool、ToolCall 与 ToolResultMessage 翻译为各家 wire format；Core 协议不等于任一 provider 原生 JSON。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/ai/src/api/openai-completions.ts", symbol: "convertTools, convertMessages", lines: null }
+verification: { method: "compare OpenAI and Anthropic adapters", status: "verified" }
+notes: ["两个 adapter 用于证明边界，不外推其他 provider 字段。"]

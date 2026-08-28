@@ -1,0 +1,20 @@
+%% Chapter: 01 Agent Loop
+%% Evidence: AL-13, AL-14
+%% Source: pi v0.84.3 @ 4e58f324fae8ebfa98a3d45181fb248072a2afac
+sequenceDiagram
+  autonumber
+  participant L as executeToolCallsParallel()
+  participant A as Tool A (slow)
+  participant B as Tool B (fast)
+  participant H as Transcript
+  L->>L: preflight A, then B
+  par allowed tools execute
+    L->>A: execute A
+  and
+    L->>B: execute B
+  end
+  B-->>L: tool_execution_end(B)
+  A-->>L: tool_execution_end(A)
+  L->>H: ToolResultMessage(A)
+  L->>H: ToolResultMessage(B)
+  Note over L,H: Completion order may differ; transcript keeps assistant source order.

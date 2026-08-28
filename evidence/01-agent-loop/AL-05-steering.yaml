@@ -1,0 +1,21 @@
+id: "AL-05"
+chapter: "01-agent-loop"
+question: "Steering 在什么时机进入上下文？"
+claim: "Steering 在当前 assistant response 及其整批工具完成、turn_end 发出后，才在下一次模型请求前注入。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "runLoop"
+  lines: "163-190, 224-260"
+supporting_sources:
+  - file: "packages/agent/test/agent-loop.test.ts"
+    symbol: "it(should inject queued messages after all tool calls complete)"
+verification:
+  method: "source-read-and-test-source-read"
+  status: "verified"
+notes:
+  - "Steering 不会跳过当前 assistant message 已经请求的工具。"
+  - "上游依赖未安装，本次没有执行测试。"

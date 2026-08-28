@@ -1,0 +1,7 @@
+id: "TS-04"
+chapter: "02-tool-system"
+question: "beforeToolCall 能否改参数，是否复验？"
+claim: "beforeToolCall 在校验后运行，可 block 或原地修改 validated args；源码不会在 hook 后再次校验。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "prepareToolCall", lines: "616-660" }
+verification: { method: "read implementation and mutation test", status: "verified" }
+notes: ["hook 作者必须维护修改后参数的不变量。"]

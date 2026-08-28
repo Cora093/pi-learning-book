@@ -1,0 +1,7 @@
+id: "CE-02"
+chapter: "03-context-engineering"
+question: "transformContext 与 convertToLlm 为什么分层？"
+claim: "transformContext 先在 AgentMessage 层裁剪或注入，convertToLlm 再映射/过滤成 provider-compatible Message。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/types.ts", symbol: "AgentLoopConfig.transformContext, convertToLlm", lines: "149-200" }
+verification: { method: "read contracts, implementation and order test", status: "verified" }
+notes: ["两者 throw 都会破坏正常低层事件序列，契约要求安全降级。"]

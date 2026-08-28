@@ -1,0 +1,7 @@
+id: "AR-07"
+chapter: "04-agent-runtime"
+question: "Coding Agent Session 如何保存分支历史？"
+claim: "SessionManager 把 entry 作为带 id/parentId 的 append-only JSONL 树；branch 只移动 leaf，下一次 append 才形成新 child。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/session-manager.ts", symbol: "SessionEntryBase, SessionManager._appendEntry, branch", lines: "46-53,1044-1067,1354-1365" }
+verification: { method: "read tree implementation and static tests", status: "verified" }
+notes: ["旧 entry 不因 branch 被修改或删除。"]

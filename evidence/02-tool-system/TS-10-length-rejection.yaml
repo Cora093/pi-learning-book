@@ -1,0 +1,7 @@
+id: "TS-10"
+chapter: "02-tool-system"
+question: "stopReason=length 时为何不执行 tool call？"
+claim: "输出截断可能留下可解析但不完整的参数，因此该消息中全部 tool calls 都生成错误结果并要求模型重发。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "failToolCallsFromTruncatedMessage", lines: "373-405" }
+verification: { method: "read safety branch and tests", status: "verified" }
+notes: ["这一分支不会调用 AgentTool.execute。"]

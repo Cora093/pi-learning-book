@@ -1,0 +1,7 @@
+id: "AE-07"
+chapter: "05-application-engineering"
+question: "stopReason=error 能否定位具体故障层？"
+claim: "Provider、transport 或违反 StreamFn contract 的 runtime 异常最终都可能成为 assistant error；应用需在边界记录稳定 failure layer/code/retryable。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent.ts", symbol: "Agent.runWithLifecycle, Agent.handleRunFailure", lines: null }
+verification: { method: "trace error conversion and retry classification", status: "verified" }
+notes: ["最终 stopReason 本身不足以定位责任方。"]

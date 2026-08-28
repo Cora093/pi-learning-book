@@ -1,0 +1,7 @@
+id: "AE-13"
+chapter: "05-application-engineering"
+question: "固定源码是否内建 dataset/evaluator runner？"
+claim: "固定源码提供 Session export/share，但没有通用 Case dataset、ground truth、evaluator 或 pass-rate runner；应用必须定义数据、grader 与运行参数。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/session-export.ts", symbol: "exportSessionToJsonl", lines: null }
+verification: { method: "search production source and read export documentation", status: "verified" }
+notes: ["导出真实 Session 不等于已有可重复 evaluation。"]

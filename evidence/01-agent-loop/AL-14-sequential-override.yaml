@@ -1,0 +1,23 @@
+id: "AL-14"
+chapter: "01-agent-loop"
+question: "什么条件会让整批工具串行执行？"
+claim: "全局 toolExecution=sequential，或本批任一已注册工具声明 executionMode=sequential，都会让整批工具串行。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "executeToolCalls"
+  lines: "411-426"
+supporting_sources:
+  - file: "packages/agent/src/agent.ts"
+    symbol: "Agent.constructor"
+  - file: "packages/agent/test/agent-loop.test.ts"
+    symbol: "per-tool sequential tests"
+verification:
+  method: "source-read-and-test-source-read"
+  status: "verified"
+notes:
+  - "Agent 的全局默认值是 parallel。"
+  - "上游依赖未安装，本次没有执行测试。"

@@ -1,0 +1,7 @@
+id: "AE-09"
+chapter: "05-application-engineering"
+question: "Usage 的 token 字段怎样避免重复计算？"
+claim: "Usage 分开记录 input/output/cacheRead/cacheWrite，可选 reasoning 是 output 子集；Session 汇总按四个主字段相加。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/ai/src/types.ts", symbol: "Usage", lines: "382-403" }
+verification: { method: "read Usage and usage-totals implementation", status: "verified" }
+notes: ["tool result Usage 不属于主 LLM context accounting。"]

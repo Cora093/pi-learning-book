@@ -1,0 +1,7 @@
+id: "AE-11"
+chapter: "05-application-engineering"
+question: "SessionStats 能否直接作为 Case 评测报表？"
+claim: "getSessionStats 聚合全部 Session entries 的消息、工具、token 与 cost，包括已压缩历史；它没有 Case/attempt、latency 或 success rate。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/agent-session.ts", symbol: "getSessionStats, getContextUsage", lines: "3242-3309" }
+verification: { method: "read aggregation and static tests", status: "verified" }
+notes: ["Session 账本统计与当前 Context 估计也要分开。"]

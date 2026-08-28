@@ -1,0 +1,34 @@
+flowchart LR
+  subgraph RUN[Run 内存状态]
+    A[AgentState] --> B[active Run]
+    B --> C[agent_end]
+    C --> D[await subscribers]
+    D --> E[idle]
+  end
+
+  subgraph SESSION[Session 持久记录]
+    F[message_end] --> G[append entry]
+    G --> H[(JSONL entry tree)]
+    H --> I[leaf path + compaction]
+    I --> J[resume context]
+  end
+
+  subgraph APP[Application 业务状态]
+    K[UI / workflow / approval]
+    L[(application store)]
+    M[custom entry]
+    K --> L
+    K -. explicit mapping .-> M
+  end
+
+  B --> F
+  D --> F
+  M --> H
+  J --> A
+
+  classDef memory fill:#173a31,stroke:#63d7b0,color:#e9fff8
+  classDef durable fill:#3a3117,stroke:#e9c75b,color:#fff9df
+  classDef app fill:#3a211d,stroke:#ee826f,color:#fff0ed
+  class A,B,C,D,E memory
+  class F,G,H,I,J,M durable
+  class K,L app

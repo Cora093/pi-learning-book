@@ -1,0 +1,7 @@
+id: "CE-09"
+chapter: "03-context-engineering"
+question: "项目 context files 怎样发现并进入 prompt？"
+claim: "ResourceLoader 分层发现 AGENTS/CLAUDE/SYSTEM/APPEND_SYSTEM 等资源，AgentSession 重建 prompt 时把 agents files 作为 project context 注入。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/resource-loader.ts", symbol: "loadProjectContextFiles, DefaultResourceLoader.reload", lines: null }
+verification: { method: "trace resource discovery and prompt rebuild", status: "verified" }
+notes: ["文件内容 eager 注入，会占用每轮 system prompt 预算。"]

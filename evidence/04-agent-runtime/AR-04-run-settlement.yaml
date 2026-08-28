@@ -1,0 +1,7 @@
+id: "AR-04"
+chapter: "04-agent-runtime"
+question: "agent_end 是否等于 Runtime 已经 idle？"
+claim: "agent_end 只是最后一个 loop event；prompt、waitForIdle 与 isStreaming=false 都要等待被 await 的订阅者完成。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent.ts", symbol: "Agent.subscribe, Agent.waitForIdle, Agent.finishRun, Agent.processEvents", lines: "240-253,323-330,529-590" }
+verification: { method: "trace async listener settlement and static tests", status: "verified" }
+notes: ["事件已发完与所有副作用已完成是两个时刻。"]

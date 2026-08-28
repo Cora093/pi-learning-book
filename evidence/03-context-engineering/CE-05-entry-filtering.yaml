@@ -1,0 +1,7 @@
+id: "CE-05"
+chapter: "03-context-engineering"
+question: "哪些 Session entry 进入模型，哪些只保存状态？"
+claim: "sessionEntryToContextMessages 只把消息、compaction 与 branch summary 等上下文 entry 转成 AgentMessage；模型、设置等状态 entry 不直接成为消息。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/session-manager.ts", symbol: "sessionEntryToContextMessages", lines: "383-416" }
+verification: { method: "read exhaustive entry conversion", status: "verified" }
+notes: ["持久存在不代表模型可见。"]

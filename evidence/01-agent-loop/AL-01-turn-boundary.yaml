@@ -1,0 +1,17 @@
+id: "AL-01"
+chapter: "01-agent-loop"
+question: "一个 Turn 的边界是什么？"
+claim: "一个 Turn 包含一次 assistant response，以及该响应产生的全部 tool calls 和 tool results。"
+classification: "type-contract"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/types.ts"
+  symbol: "AgentEvent"
+  lines: "421-434"
+verification:
+  method: "source-read"
+  status: "verified"
+notes:
+  - "turn_end 同时携带 assistant message 与本 Turn 的 toolResults。"

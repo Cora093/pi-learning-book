@@ -1,0 +1,8 @@
+node_modules/
+book/.vitepress/cache/
+book/.vitepress/dist/
+.vitepress/dist/
+.DS_Store
+*.log
+.playwright-cli/
+test-results/

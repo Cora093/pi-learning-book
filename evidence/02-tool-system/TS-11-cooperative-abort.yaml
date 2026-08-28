@@ -1,0 +1,7 @@
+id: "TS-11"
+chapter: "02-tool-system"
+question: "abort 是否强制杀死工具执行？"
+claim: "runtime 传播 AbortSignal 并在边界检查；正在运行的工具能否及时退出取决于实现是否协作处理 signal。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "prepareToolCall, executePreparedToolCall", lines: "600-711" }
+verification: { method: "trace AbortSignal propagation", status: "verified" }
+notes: ["这是协作式取消，不是线程级强杀。"]

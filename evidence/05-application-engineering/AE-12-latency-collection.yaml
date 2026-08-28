@@ -1,0 +1,7 @@
+id: "AE-12"
+chapter: "05-application-engineering"
+question: "端到端 latency 与 p95 从哪里来？"
+claim: "Core events 没有统一 event timestamp，消息 timestamp 不能覆盖 queue/retry/tool 全链路；实验宿主需用同一单调时钟采集并跨 attempts 聚合。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/types.ts", symbol: "AgentEvent", lines: "421-443" }
+verification: { method: "read event fields and telemetry schema integration boundary", status: "verified" }
+notes: ["success rate 的分母是预先固定的 attempt 数。"]

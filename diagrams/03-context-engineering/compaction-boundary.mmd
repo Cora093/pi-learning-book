@@ -1,0 +1,18 @@
+flowchart LR
+    H[older entries] --> S[Compaction summary]
+    K[recent entries] --> C[next context]
+    S --> C
+
+    H -. summarized and retained in session log .-> E[firstKeptEntryId]
+    E --> K
+
+    T{cut inside large Turn?} -->|no| K
+    T -->|yes| P[turn-prefix summary]
+    P --> C
+
+    classDef old fill:#ecebe7,stroke:#737b78,color:#0a100f
+    classDef summary fill:#fff0ba,stroke:#5d4812,color:#0a100f
+    classDef keep fill:#d8f5e8,stroke:#123b31,color:#0a100f
+    class H,E old
+    class S,P,T summary
+    class K,C keep

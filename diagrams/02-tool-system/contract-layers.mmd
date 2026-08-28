@@ -1,0 +1,16 @@
+flowchart TB
+    M[Model / Provider] -->|Tool schema| AI[packages/ai · Tool]
+    AI -->|extends| AG[packages/agent · AgentTool]
+    AG -->|wrap| APP[packages/coding-agent · ToolDefinition]
+
+    AI --- A1[name · description · parameters]
+    AG --- A2[label · prepareArguments · execute · executionMode]
+    APP --- A3[rendering · extension context · application policy]
+
+    M -->|ToolCall id + name + arguments| LOOP[Agent Loop]
+    LOOP -->|ToolResultMessage| M
+
+    classDef core fill:#d8f5e8,stroke:#123b31,color:#0a100f
+    classDef app fill:#fff0ba,stroke:#5d4812,color:#0a100f
+    class AI,AG,LOOP core
+    class APP app

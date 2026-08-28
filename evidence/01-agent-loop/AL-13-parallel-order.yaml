@@ -1,0 +1,20 @@
+id: "AL-13"
+chapter: "01-agent-loop"
+question: "并行工具的完成事件和 transcript 顺序是否相同？"
+claim: "并行模式按实际完成顺序发 tool_execution_end，但按 assistant 源顺序发出并持久化 ToolResultMessage。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "executeToolCallsParallel"
+  lines: "489-553"
+supporting_sources:
+  - file: "packages/agent/test/agent-loop.test.ts"
+    symbol: "it(should emit tool_execution_end in completion order but persist tool results in source order)"
+verification:
+  method: "source-read-and-test-source-read"
+  status: "verified"
+notes:
+  - "上游依赖未安装，本次没有执行测试。"

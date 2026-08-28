@@ -1,0 +1,26 @@
+flowchart LR
+  C[Case + fixture + expected outcome] --> R[Run attempt]
+  R --> E[Agent / AgentSession events]
+  R --> S[Session entries + Usage]
+  R --> B[Business state]
+
+  E --> N[Normalized trace]
+  S --> N
+  B --> G[Case evaluator]
+  C --> G
+  N --> G
+
+  G --> O{Outcome}
+  O -->|pass| P[task success]
+  O -->|fail| F[failure layer + code]
+  N --> M[latency / tokens / cost / attempts]
+  P --> A[Aggregate p50 / p95 / success rate]
+  F --> A
+  M --> A
+
+  classDef input fill:#16221f,stroke:#63d7b0,color:#edf5f2
+  classDef evidence fill:#3a3117,stroke:#e9c75b,color:#fff9df
+  classDef result fill:#3a211d,stroke:#ee826f,color:#fff0ed
+  class C,R input
+  class E,S,B,N,M evidence
+  class G,O,P,F,A result

@@ -1,0 +1,7 @@
+id: "TS-13"
+chapter: "02-tool-system"
+question: "ToolResultMessage 保存哪些字段？"
+claim: "结果消息保存 call id、tool name、content、details、usage、addedToolNames、isError 与 timestamp；terminate 不写入消息。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "createToolResultMessage", lines: "777-790" }
+verification: { method: "compare result and message contracts", status: "verified" }
+notes: ["details 主要服务应用 UI 和日志。"]

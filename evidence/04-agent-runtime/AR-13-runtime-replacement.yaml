@@ -1,0 +1,7 @@
+id: "AR-13"
+chapter: "04-agent-runtime"
+question: "跨 Session 或 cwd 切换由谁拥有？"
+claim: "AgentSessionRuntime 在 new/resume/fork/import 时先 teardown 旧 session，再重建 services/session 并 rebind host；同文件 tree navigation 仍由 AgentSession 负责。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/agent-session-runtime.ts", symbol: "AgentSessionRuntime, teardownCurrent, switchSession", lines: null }
+verification: { method: "trace runtime replacement lifecycle", status: "verified" }
+notes: ["切换不是在原 AgentSession 上替换几条 message。"]

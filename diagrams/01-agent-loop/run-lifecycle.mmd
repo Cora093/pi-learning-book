@@ -1,0 +1,32 @@
+%% Chapter: 01 Agent Loop
+%% Evidence: AL-01, AL-02, AL-03, AL-04, AL-05, AL-06
+%% Source: pi v0.84.3 @ 4e58f324fae8ebfa98a3d45181fb248072a2afac
+sequenceDiagram
+  autonumber
+  participant U as User / Queue
+  participant L as runLoop()
+  participant M as streamFunction()
+  participant T as AgentTool.execute()
+  L->>L: agent_start
+  U->>L: user message
+  L->>L: turn_start
+  L->>M: Context + tools + AbortSignal
+  M-->>L: AssistantMessage(toolCall)
+  L->>T: validated args
+  T-->>L: AgentToolResult
+  L->>L: append ToolResultMessage
+  L->>L: turn_end
+  L->>U: poll steering
+  alt tool result or steering requires another Turn
+    L->>L: turn_start
+    L->>M: updated Context
+    M-->>L: AssistantMessage(stop)
+    L->>L: turn_end
+  end
+  L->>U: poll follow-up
+  alt follow-up queued
+    U->>L: follow-up message
+    L->>L: next Turn
+  else queues empty
+    L->>L: agent_end
+  end

@@ -1,0 +1,21 @@
+flowchart LR
+    C[ToolCall] --> F{find by name}
+    F -->|missing| E[error result]
+    F -->|found| P[prepareArguments?]
+    P --> V[validateToolArguments]
+    V -->|invalid| E
+    V --> B[beforeToolCall?]
+    B -->|block| E
+    B -->|allow| X[execute]
+    X -->|throw| N[normalize error]
+    X -->|return| A[afterToolCall?]
+    N --> A
+    A --> R[ToolResultMessage]
+    E --> R
+
+    classDef gate fill:#fff0ba,stroke:#5d4812,color:#0a100f
+    classDef exec fill:#d8f5e8,stroke:#123b31,color:#0a100f
+    classDef error fill:#ffe0d8,stroke:#7d2f22,color:#0a100f
+    class F,V,B gate
+    class P,X,A,R exec
+    class E,N error

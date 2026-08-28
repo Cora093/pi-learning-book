@@ -1,0 +1,7 @@
+id: "TS-06"
+chapter: "02-tool-system"
+question: "parallel 是否立即同时 execute 所有调用？"
+claim: "parallel 先按源顺序完成 lookup、validation 和 before hook，再并发执行通过 preflight 的调用。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "executeToolCallsParallel", lines: "489-553" }
+verification: { method: "trace fixed-source scheduling", status: "verified" }
+notes: ["before hooks 本身按源顺序 await。"]

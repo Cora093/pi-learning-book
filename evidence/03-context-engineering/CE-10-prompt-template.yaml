@@ -1,0 +1,7 @@
+id: "CE-10"
+chapter: "03-context-engineering"
+question: "Prompt template 为什么不是常驻 Context？"
+claim: "Prompt templates 在加载时注册元数据，只有输入命中 /name 时 expandPromptTemplate 才把正文和参数展开成用户输入。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/prompt-templates.ts", symbol: "loadPromptTemplates, expandPromptTemplate", lines: "194-295" }
+verification: { method: "read loader, expansion and tests", status: "verified" }
+notes: ["这是输入宏，不是自动 retrieval。"]

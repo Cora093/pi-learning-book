@@ -1,0 +1,7 @@
+id: "CE-04"
+chapter: "03-context-engineering"
+question: "Session tree 怎样变成当前 AgentMessage 历史？"
+claim: "buildContextEntries 选择当前 leaf 的有效路径并应用 compaction 边界，buildSessionContext 再把 entry 转成 AgentMessage。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/session-manager.ts", symbol: "buildContextEntries, buildSessionContext", lines: "418-470" }
+verification: { method: "trace session path reconstruction", status: "verified" }
+notes: ["Session JSONL 不等于 provider transcript。"]

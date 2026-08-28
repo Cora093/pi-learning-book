@@ -1,0 +1,7 @@
+id: "TS-03"
+chapter: "02-tool-system"
+question: "本地 validation 是否只返回 boolean？"
+claim: "validateToolArguments clone 并规范化参数后返回执行值；失败时抛出带 schema 路径的错误。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/ai/src/utils/validation.ts", symbol: "validateToolArguments", lines: "317-366" }
+verification: { method: "read implementation and tests", status: "verified" }
+notes: ["provider constrained sampling 不替代本地校验。"]

@@ -1,0 +1,7 @@
+id: "TS-12"
+chapter: "02-tool-system"
+question: "terminate 的精确作用是什么？"
+claim: "只有批次每个 finalized result 都 terminate=true 才关闭工具自动续轮；它不跳过 sibling calls，也不屏蔽队列消息。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "shouldTerminateToolBatch", lines: "582-584" }
+verification: { method: "read implementation and mixed-result tests", status: "verified" }
+notes: ["terminate 是批次续轮提示，不是取消机制。"]

@@ -1,0 +1,7 @@
+id: "CE-15"
+chapter: "03-context-engineering"
+question: "摘要怎样重新进入活动 Context？"
+claim: "compact 返回 summary 与 firstKeptEntryId；Session 重建将摘要转成 compactionSummary message，并只拼接保留后缀。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/compaction/compaction.ts", symbol: "compact", lines: "844-949" }
+verification: { method: "trace summary generation, persistence and rebuild", status: "verified" }
+notes: ["摘要依赖额外 LLM 调用，是有损且可能失败的。"]

@@ -1,0 +1,7 @@
+id: "AE-02"
+chapter: "05-application-engineering"
+question: "产品级一次操作的 trace 应在哪个事件结束？"
+claim: "AgentSession 可跨 retry、compaction 和多个 Core Run；评测 wall-clock 终点应取 agent_settled，并由应用记录单调时钟。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/agent-session.ts", symbol: "AgentSessionEvent, _emitAgentSettled, waitForIdle", lines: null }
+verification: { method: "read session lifecycle and regression tests", status: "verified" }
+notes: ["第一次 agent_end 可能不是用户操作终点。"]

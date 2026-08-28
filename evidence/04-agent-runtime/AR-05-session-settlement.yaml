@@ -1,0 +1,7 @@
+id: "AR-05"
+chapter: "04-agent-runtime"
+question: "一次 AgentSession 用户操作为何可能跨多个 Core Run？"
+claim: "AgentSession 在一次 prompt 后可能因 retry、auto-compaction 或新队列消息继续运行，最终才发 agent_settled。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/agent-session.ts", symbol: "AgentSession._runAgentPrompt, _handlePostAgentRun, _emitAgentSettled", lines: "607-615,1074-1115" }
+verification: { method: "trace session prompt lifecycle and regression tests", status: "verified" }
+notes: ["产品层稳定点是 agent_settled，不是第一次 agent_end。"]

@@ -1,0 +1,7 @@
+id: "TS-07"
+chapter: "02-tool-system"
+question: "并行完成事件和 transcript 是否同序？"
+claim: "tool_execution_end 按真实完成顺序；ToolResultMessage 经 Promise.all 恢复后按 assistant 源顺序写入。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "executeToolCallsParallel", lines: "525-552" }
+verification: { method: "read implementation and completion-order test", status: "verified" }
+notes: ["UI 时间线与持久 transcript 是两种顺序。"]

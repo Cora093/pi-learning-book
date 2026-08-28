@@ -1,0 +1,7 @@
+id: "AR-02"
+chapter: "04-agent-runtime"
+question: "Run 与 Turn 在固定源码中怎样划界？"
+claim: "本书用 agent_start 到 agent_end 表示 Run，用 turn_start 到 turn_end 表示 Turn；Run 是事件边界教学术语，不是公开 class。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/types.ts", symbol: "AgentEvent", lines: "421-443" }
+verification: { method: "trace event contract and private ActiveRun", status: "verified" }
+notes: ["Session 可以跨多个 Run。"]

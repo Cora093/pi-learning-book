@@ -1,0 +1,7 @@
+id: "CE-16"
+chapter: "03-context-engineering"
+question: "Branch summary、Session search 与 RAG/memory 的边界是什么？"
+claim: "固定源码支持 branch summary、Session 文本扫描和 extension context 注入，但没有内建自动向量检索或长期事实 memory pipeline。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/compaction/branch-summarization.ts", symbol: "generateBranchSummary", lines: null }
+verification: { method: "read branch summary/search/storage APIs and confirm absence boundary", status: "verified" }
+notes: ["transformContext 能接 retrieval，不等于 Pi Coding Agent 自带 RAG。"]

@@ -1,0 +1,7 @@
+id: "CE-08"
+chapter: "03-context-engineering"
+question: "Base system prompt 怎样由当前资源拼成？"
+claim: "buildSystemPrompt 组合 base/custom prompt、tool snippets、guidelines、append prompt、project context、Skill index 与 cwd。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/system-prompt.ts", symbol: "buildSystemPrompt", lines: "8-168" }
+verification: { method: "read builder and tests", status: "verified" }
+notes: ["本书称其 Static Context，是观察框架而非 Pi 类型。"]

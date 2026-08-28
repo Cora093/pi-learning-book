@@ -1,0 +1,20 @@
+id: "AL-04"
+chapter: "01-agent-loop"
+question: "Tool Call 为什么会让模型再次被调用？"
+claim: "工具结果被追加到当前上下文；只要工具批次未整体 terminate，内层循环就开始下一个 Turn。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "runLoop, executeToolCalls"
+  lines: "192-224, 411-431"
+supporting_sources:
+  - file: "packages/agent/test/agent-loop.test.ts"
+    symbol: "it(should handle tool calls and results)"
+verification:
+  method: "source-read-and-test-source-read"
+  status: "verified"
+notes:
+  - "上游依赖未安装，本次没有执行测试。"

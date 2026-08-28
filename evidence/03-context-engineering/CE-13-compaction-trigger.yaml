@@ -1,0 +1,7 @@
+id: "CE-13"
+chapter: "03-context-engineering"
+question: "自动 compaction 何时触发？"
+claim: "threshold 路径在 contextTokens > contextWindow - reserveTokens 时触发；Coding Agent 还对 provider overflow 错误提供恢复压缩路径。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/compaction/compaction.ts", symbol: "shouldCompact", lines: "126-238" }
+verification: { method: "read threshold, overflow handling and tests", status: "verified" }
+notes: ["默认 reserveTokens=16384、keepRecentTokens=20000。"]

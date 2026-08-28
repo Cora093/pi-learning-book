@@ -1,0 +1,7 @@
+id: "AR-15"
+chapter: "04-agent-runtime"
+question: "Harness v2 在固定版本中实现到哪里？"
+claim: "Session v4、lane、reducer 与 ExecutionEnv 已实现；AgentHarness 的 prompt、resume、abort、drive、watch 和 lane orchestration 仍抛 HarnessNotImplemented。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/harness/agent-harness.ts", symbol: "HarnessNotImplemented, AgentHarness.create, AgentHarness.unavailable", lines: "74-82,305-451" }
+verification: { method: "read implementation, reducer and scaffold tests", status: "verified" }
+notes: ["harness.md 是目标规格，不能替代当前实现事实。"]

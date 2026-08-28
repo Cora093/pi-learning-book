@@ -1,0 +1,7 @@
+id: "CE-14"
+chapter: "03-context-engineering"
+question: "cut point 如何保护最近原文与 Turn 结构？"
+claim: "findCutPoint 向后累计 keepRecentTokens；prepareCompaction 记录 firstKeptEntryId，必要时为被拆开的超大 Turn 生成 prefix summary。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/compaction/compaction.ts", symbol: "findCutPoint, prepareCompaction", lines: "388-445, 718-815" }
+verification: { method: "read cut algorithm and boundary tests", status: "verified" }
+notes: ["Compaction 不删除原 Session 文件。"]

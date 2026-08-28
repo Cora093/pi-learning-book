@@ -1,0 +1,7 @@
+id: "AE-03"
+chapter: "05-application-engineering"
+question: "固定版本是否自动提供完整 tracing？"
+claim: "Pi 定义了 typed telemetry context、pi.ai.request 与 pi.harness span schema，但固定 production path 未自动调用 span starters。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/harness/telemetry.ts", symbol: "AI_TELEMETRY_SCHEMA, HARNESS_TELEMETRY_SCHEMA, startAiSpan, startHarnessSpan", lines: "42-144,232-613" }
+verification: { method: "read schemas and search production call sites", status: "verified" }
+notes: ["Harness driver 仍是 scaffold，schema 不代表 spans 已覆盖实际运行。"]

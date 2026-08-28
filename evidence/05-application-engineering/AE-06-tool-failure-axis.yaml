@@ -1,0 +1,7 @@
+id: "AE-06"
+chapter: "05-application-engineering"
+question: "一个 Tool 失败是否自动让整个任务失败？"
+claim: "Tool 查找、校验、hook 和 execute 失败会归一化为 isError=true 的 ToolResultMessage，通常仍进入下一 Turn 供模型修复。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "prepareToolCall, executePreparedToolCall, finalizeExecutedToolCall", lines: null }
+verification: { method: "trace tool error normalization and static tests", status: "verified" }
+notes: ["assistant stopReason 与每个 tool outcome 应分别记录。"]

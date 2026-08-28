@@ -1,0 +1,7 @@
+id: "AE-15"
+chapter: "05-application-engineering"
+question: "跨框架公平比较必须冻结哪些接口？"
+claim: "Pi adapter 可基于 AgentTool、AgentLoopConfig、AgentEvent 与 Usage 归一化输出；同一 Case、运行参数、Tool Contract、grader 和 metrics 必须由 shared interface 统一。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/types.ts", symbol: "AgentTool, AgentLoopConfig, AgentEvent", lines: null }
+verification: { method: "map Pi observable contract to local comparison policy", status: "verified" }
+notes: ["本章只冻结原则，不实施 comparisons/shared 字段。"]

@@ -1,0 +1,7 @@
+id: "TS-01"
+chapter: "02-tool-system"
+question: "Tool 与 AgentTool 的边界是什么？"
+claim: "Tool 只声明模型调用协议；AgentTool 增加 label、prepareArguments、execute 和 executionMode，形成本地执行契约。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/types.ts", symbol: "AgentTool", lines: "385-408" }
+verification: { method: "read public type contracts", status: "verified" }
+notes: ["Tool 基础定义位于 packages/ai/src/types.ts::Tool。"]

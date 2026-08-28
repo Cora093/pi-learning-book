@@ -1,0 +1,7 @@
+id: "AR-03"
+chapter: "04-agent-runtime"
+question: "一个 Agent 能否同时运行两个 prompt？"
+claim: "Agent 只允许一个 active Run；运行中的新输入必须排入 steering/follow-up 队列或等待，abort 通过 AbortSignal 协作取消。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent.ts", symbol: "Agent.prompt, Agent.continue, Agent.abort, Agent.runWithLifecycle", lines: "313-388,486-509" }
+verification: { method: "read implementation and static tests", status: "verified" }
+notes: ["reset 也要求先进入 idle。"]

@@ -1,0 +1,7 @@
+id: "CE-06"
+chapter: "03-context-engineering"
+question: "Coding Agent 自定义消息怎样映射成标准 role？"
+claim: "convertToLlm 将 bash/custom/branchSummary/compactionSummary 映射为 user message，过滤 excludeFromContext bash，并透传标准三种 role。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/messages.ts", symbol: "convertToLlm", lines: "140-195" }
+verification: { method: "read exhaustive role conversion", status: "verified" }
+notes: ["UI display 属性与模型 role 是不同维度。"]

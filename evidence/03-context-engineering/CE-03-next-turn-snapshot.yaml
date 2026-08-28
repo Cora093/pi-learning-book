@@ -1,0 +1,7 @@
+id: "CE-03"
+chapter: "03-context-engineering"
+question: "同一 Run 的下一 Turn 怎样刷新 Context？"
+claim: "turn_end 后 prepareNextTurn 可返回 replacement context/model/thinking state；Coding Agent 用该边界刷新动态工具和 system prompt。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "runLoop prepareNextTurn", lines: "228-249" }
+verification: { method: "trace next-turn update and tests", status: "verified" }
+notes: ["更新不回溯改变已完成 Turn。"]

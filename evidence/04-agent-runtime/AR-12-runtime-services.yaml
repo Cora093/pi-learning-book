@@ -1,0 +1,7 @@
+id: "AR-12"
+chapter: "04-agent-runtime"
+question: "哪些资源与当前 cwd 绑定？"
+claim: "ResourceLoader 统一加载 extensions、skills、prompts、themes 与 AGENTS files；createAgentSessionServices 为一个 cwd 组合 model、settings 和 loader。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/agent-session-services.ts", symbol: "AgentSessionServices, createAgentSessionServices", lines: null }
+verification: { method: "read services and ResourceLoader implementation", status: "verified" }
+notes: ["cwd 变化时这组 services 应整体重建。"]

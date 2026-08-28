@@ -1,0 +1,18 @@
+flowchart TD
+  H[Session header] --> U1[user entry · id u1 · parent null]
+  U1 --> A1[assistant entry · id a1 · parent u1]
+  A1 --> U2[user entry · id u2 · parent a1]
+  U2 --> A2[assistant entry · id a2 · parent u2]
+  A1 --> U3[user entry · id u3 · parent a1]
+  U3 --> A3[assistant entry · id a3 · parent u3]
+
+  L1[[leaf: a2]] -. branch to a1 .-> A1
+  L2[[next append moves leaf to a3]] -.-> A3
+  A3 -. root-to-leaf path .-> F[(new forked session)]
+
+  classDef entry fill:#16221f,stroke:#5f746e,color:#edf5f2
+  classDef leaf fill:#173a31,stroke:#63d7b0,color:#e9fff8
+  classDef fork fill:#3a3117,stroke:#e9c75b,color:#fff9df
+  class H,U1,A1,U2,A2,U3,A3 entry
+  class L1,L2 leaf
+  class F fork

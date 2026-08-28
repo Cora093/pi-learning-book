@@ -1,0 +1,7 @@
+id: "TS-15"
+chapter: "02-tool-system"
+question: "Coding Agent ToolDefinition 与 AgentTool 是什么关系？"
+claim: "ToolDefinition 是应用层 superset；wrapToolDefinition 适配结构与 context，调度、校验和事件仍由 packages/agent 负责。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/tools/tool-definition-wrapper.ts", symbol: "wrapToolDefinition", lines: "5-21" }
+verification: { method: "read app-layer wrapper and types", status: "verified" }
+notes: ["权限确认与扩展拦截属于应用层选择。"]

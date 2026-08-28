@@ -1,0 +1,21 @@
+flowchart LR
+    S[Session entries] --> B[buildSessionContext]
+    B --> A[AgentMessage transcript]
+    A --> T[transformContext]
+    T --> C[convertToLlm]
+    C --> M[Message array]
+
+    P[buildSystemPrompt] --> R[LLM Context]
+    M --> R
+    X[current tools] --> R
+    R --> V[provider adapter]
+
+    E[extension / external retrieval] -. inject or prune .-> T
+    N[prepareNextTurn] -. replace next snapshot .-> B
+
+    classDef core fill:#d8f5e8,stroke:#123b31,color:#0a100f
+    classDef transform fill:#ffe0d8,stroke:#7d2f22,color:#0a100f
+    classDef app fill:#fff0ba,stroke:#5d4812,color:#0a100f
+    class B,A,C,M,R core
+    class T,N transform
+    class P,X,E,V app

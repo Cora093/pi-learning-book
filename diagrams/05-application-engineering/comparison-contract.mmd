@@ -1,0 +1,26 @@
+flowchart TD
+  SH[comparisons/shared]
+  SH --> D[Case dataset + fixture]
+  SH --> T[Tool Contract + side effects]
+  SH --> C[model / run config]
+  SH --> X[trace schema + metrics + evaluator]
+
+  D --> PI[Pi adapter]
+  T --> PI
+  C --> PI
+  D --> LG[LangGraph adapter]
+  T --> LG
+  C --> LG
+
+  PI --> NP[normalized result]
+  LG --> NL[normalized result]
+  NP --> X
+  NL --> X
+  X --> RP[comparison report]
+
+  classDef shared fill:#173a31,stroke:#63d7b0,color:#e9fff8
+  classDef adapter fill:#3a3117,stroke:#e9c75b,color:#fff9df
+  classDef report fill:#3a211d,stroke:#ee826f,color:#fff0ed
+  class SH,D,T,C,X shared
+  class PI,LG,NP,NL adapter
+  class RP report

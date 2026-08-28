@@ -1,0 +1,7 @@
+id: "AR-16"
+chapter: "04-agent-runtime"
+question: "当前 Session v4 JSONL 的原子性边界是什么？"
+claim: "JSONL storage 串行化单项 mutation；fork publication 与 torn-tail repair 使用临时文件加 rename，但目标多写 transaction 尚未实现。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/harness/session/jsonl/storage.ts", symbol: "publishFileAtomically, JsonlSessionStorage.enqueue, appendMutation", lines: "23-46,134-190,258-275" }
+verification: { method: "read storage contract, implementation and static tests", status: "verified" }
+notes: ["原子文件发布不等于 operation transition 已事务化。"]

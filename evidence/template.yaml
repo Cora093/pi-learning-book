@@ -1,0 +1,14 @@
+chapter: "00-placeholder"
+question: "待回答的问题"
+claim: null
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: null
+  file: null
+  symbol: null
+  lines: null
+verification:
+  method: null
+  status: "open"
+notes: []

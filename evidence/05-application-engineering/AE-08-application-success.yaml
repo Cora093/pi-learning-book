@@ -1,0 +1,7 @@
+id: "AE-08"
+chapter: "05-application-engineering"
+question: "最终任务成功由谁判定？"
+claim: "Pi 的 AssistantMessage、ToolResultMessage 和 SessionStats 没有 taskSuccess 或 grader score；业务成功必须由 Case evaluator 根据 expected outcome 判定。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/agent-session.ts", symbol: "SessionStats", lines: "269-287" }
+verification: { method: "read result and stats contracts for business outcome boundary", status: "verified" }
+notes: ["本书使用 provider/model/tool/runtime/application 五层失败分类。"]

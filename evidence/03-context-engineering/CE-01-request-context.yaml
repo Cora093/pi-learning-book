@@ -1,0 +1,7 @@
+id: "CE-01"
+chapter: "03-context-engineering"
+question: "一次 provider 请求的最终 Context 由什么组成？"
+claim: "streamAssistantResponse 在每次调用前把当前 systemPrompt、转换后的 messages 和当前 tools 组装成 LLM Context。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "streamAssistantResponse", lines: "281-312" }
+verification: { method: "trace provider request assembly", status: "verified" }
+notes: ["AgentContext 是运行时快照，不是 Session 文件格式。"]

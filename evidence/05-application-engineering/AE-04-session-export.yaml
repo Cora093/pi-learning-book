@@ -1,0 +1,7 @@
+id: "AE-04"
+chapter: "05-application-engineering"
+question: "Session 导出是否等于实验数据集？"
+claim: "JSONL/HTML export 可保存 branch 或完整 entries 供复盘，但没有 case id、grader result、wall latency 或成功标签，只能作为 dataset 原料。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/session-export.ts", symbol: "exportSessionToJsonl", lines: null }
+verification: { method: "read JSONL and HTML exporters plus static tests", status: "verified" }
+notes: ["可复盘记录不等于可重复 evaluation。"]

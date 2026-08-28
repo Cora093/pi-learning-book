@@ -1,0 +1,17 @@
+id: "AL-03"
+chapter: "01-agent-loop"
+question: "模型增量怎样形成一条 AssistantMessage？"
+claim: "流开始时 partial assistant message 进入上下文，增量原位替换它，流结束时 final message 再替换 partial。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "streamAssistantResponse"
+  lines: "281-371"
+verification:
+  method: "source-read"
+  status: "verified"
+notes:
+  - "每个 delta 发 message_update，但不会追加成独立 transcript message。"

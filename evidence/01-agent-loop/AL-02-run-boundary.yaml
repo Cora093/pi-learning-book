@@ -1,0 +1,20 @@
+id: "AL-02"
+chapter: "01-agent-loop"
+question: "本书所说的 Run 如何映射到 Pi 源码？"
+claim: "本书把 agent_start 到 agent_end 的一次活动生命周期称为 Run；同一 Run 可以包含多个 Turn。"
+classification: "inference"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "runAgentLoop, runLoop"
+  lines: "95-275"
+supporting_sources:
+  - file: "packages/agent/src/agent.ts"
+    symbol: "ActiveRun, Agent.runWithLifecycle"
+verification:
+  method: "source-read-and-cross-symbol-inference"
+  status: "verified"
+notes:
+  - "Run 是教学术语映射，不是 Pi Core 暴露的公开领域类型。"

@@ -1,0 +1,7 @@
+id: "AE-10"
+chapter: "05-application-engineering"
+question: "Cost 由什么决定？"
+claim: "calculateCost 根据模型价目、pricing tier 和 provider usage 计算分项成本；公平比较必须锁定 provider/model/routing 与价目快照。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/ai/src/models.ts", symbol: "calculateCost", lines: "878-927" }
+verification: { method: "read price calculation and static tests", status: "verified" }
+notes: ["对照报告应同时保留原始 token 与美元 cost。"]

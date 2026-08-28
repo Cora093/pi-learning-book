@@ -1,0 +1,7 @@
+id: "CE-11"
+chapter: "03-context-engineering"
+question: "Skill 为什么是元数据常驻、正文按需读？"
+claim: "formatSkillsForPrompt 只输出可调用 Skill 的 name、description、location，并明确让模型通过 read 加载匹配的 SKILL.md。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/skills.ts", symbol: "formatSkillsForPrompt", lines: "347-380" }
+verification: { method: "read prompt formatter contract", status: "verified" }
+notes: ["没有 read 工具或 disableModelInvocation=true 时不会进入索引。"]

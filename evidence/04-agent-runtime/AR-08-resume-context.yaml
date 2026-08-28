@@ -1,0 +1,7 @@
+id: "AR-08"
+chapter: "04-agent-runtime"
+question: "Resume 如何从持久记录重建模型 Context？"
+claim: "SessionManager 从 leaf 沿 parent 回到 root，再结合最新 compaction summary 与保留后缀构建 context；其他 branch 不自动进入模型。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/session-manager.ts", symbol: "buildSessionPath, buildContextEntries, buildSessionContext", lines: "334-469" }
+verification: { method: "trace context reconstruction and static tests", status: "verified" }
+notes: ["恢复的是选中 leaf 的路径投影，不是把整棵树塞入 Context。"]

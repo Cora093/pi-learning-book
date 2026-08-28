@@ -1,0 +1,7 @@
+id: "AR-01"
+chapter: "04-agent-runtime"
+question: "低层 Agent 运行时状态拥有什么，又不拥有什么？"
+claim: "AgentState 保存模型、工具、消息和当前流式执行状态；项目资源、JSONL、UI 与业务状态由更高层拥有。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/types.ts", symbol: "AgentState", lines: "333-358" }
+verification: { method: "read state contract and Agent implementation", status: "verified" }
+notes: ["Application state 不会因为使用 Agent 自动持久化。"]

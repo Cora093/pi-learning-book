@@ -1,0 +1,7 @@
+id: "AE-16"
+chapter: "05-application-engineering"
+question: "Pi 与 LangGraph 的可比边界在哪里？"
+claim: "只比较 shared adapter 的 normalized result、trace、failure 与 metrics；固定证据未核验 LangGraph 内部实现，私有事件或节点数量不能作为跨框架指标。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/ai/src/types.ts", symbol: "AssistantMessage, ToolResultMessage, Usage", lines: null }
+verification: { method: "define adapter boundary from verified Pi outputs and local policy", status: "verified" }
+notes: ["未读取或验证 LangGraph 源码，不描述其内部 loop/state/checkpoint。"]

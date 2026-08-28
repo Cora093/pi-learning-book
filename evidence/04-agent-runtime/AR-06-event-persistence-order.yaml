@@ -1,0 +1,7 @@
+id: "AR-06"
+chapter: "04-agent-runtime"
+question: "Core event 何时进入扩展、UI 与 Session？"
+claim: "AgentSession 作为 async Agent subscriber，依次处理队列显示、扩展事件、同步 UI listener，并在 message_end 追加 Session entry；Core 会等待整个 handler。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/agent-session.ts", symbol: "AgentSession._handleAgentEvent", lines: "620-836" }
+verification: { method: "trace Agent subscription handler", status: "verified" }
+notes: ["AgentSession UI listeners 本身按同步回调处理。"]

@@ -1,0 +1,7 @@
+id: "AE-05"
+chapter: "05-application-engineering"
+question: "stopReason=stop 是否等于任务成功？"
+claim: "StopReason 描述 provider 响应如何终止；stop 只表示本次响应正常结束，不能证明业务目标达成。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/ai/src/types.ts", symbol: "StopReason, AssistantMessage", lines: "382-446" }
+verification: { method: "read protocol types and loop branches", status: "verified" }
+notes: ["pending、toolUse、length、deferred、error、aborted 也各有独立语义。"]

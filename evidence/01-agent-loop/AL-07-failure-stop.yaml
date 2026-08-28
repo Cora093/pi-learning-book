@@ -1,0 +1,17 @@
+id: "AL-07"
+chapter: "01-agent-loop"
+question: "最终消息为 error 或 aborted 时 Loop 怎样结束？"
+claim: "最终 AssistantMessage 的 stopReason 为 error 或 aborted 时，Loop 发出空 toolResults 的 turn_end 和 agent_end，并立即返回。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "runLoop"
+  lines: "192-200"
+verification:
+  method: "source-read"
+  status: "verified"
+notes:
+  - "这条分支不会执行失败消息 content 中潜在的 toolCall。"

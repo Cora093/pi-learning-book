@@ -1,0 +1,7 @@
+id: "CE-07"
+chapter: "03-context-engineering"
+question: "Tool result 的 content 与 details 各给谁？"
+claim: "content 成为 provider 可见 tool output；details 保留在 ToolResultMessage/Session 供应用使用，代表性 provider adapter 不把任意 details 编码给模型。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/agent-loop.ts", symbol: "createToolResultMessage", lines: "777-790" }
+verification: { method: "compare result message and provider serializers", status: "verified" }
+notes: ["不能简写为 details 在整个系统中被丢弃。"]

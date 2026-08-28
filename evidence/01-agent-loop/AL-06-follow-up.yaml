@@ -1,0 +1,20 @@
+id: "AL-06"
+chapter: "01-agent-loop"
+question: "Follow-up 与 Steering 的轮询点有何不同？"
+claim: "Follow-up 只在没有工具续轮且没有 steering、Agent 本来要退出时轮询。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent-loop.ts"
+  symbol: "runLoop"
+  lines: "169-174, 262-274"
+supporting_sources:
+  - file: "packages/agent/src/types.ts"
+    symbol: "AgentLoopConfig.getFollowUpMessages"
+verification:
+  method: "source-read"
+  status: "verified"
+notes:
+  - "有 follow-up 时，同一个 Run 重新进入内层循环。"

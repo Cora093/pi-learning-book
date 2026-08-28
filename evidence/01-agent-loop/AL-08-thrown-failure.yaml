@@ -1,0 +1,21 @@
+id: "AL-08"
+chapter: "01-agent-loop"
+question: "如果 StreamFn 违反契约直接 throw，会发生什么？"
+claim: "高层 Agent 捕获抛出的运行异常，合成失败 AssistantMessage，并补发 message、turn_end 和 agent_end 生命周期事件。"
+classification: "source-fact"
+source:
+  repository: "https://github.com/earendil-works/pi"
+  tag: "v0.84.3"
+  commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac"
+  file: "packages/agent/src/agent.ts"
+  symbol: "Agent.runWithLifecycle, Agent.handleRunFailure"
+  lines: "486-527"
+supporting_sources:
+  - file: "packages/agent/test/agent.test.ts"
+    symbol: "it(emits full lifecycle events for thrown run failures)"
+verification:
+  method: "source-read-and-test-source-read"
+  status: "verified"
+notes:
+  - "低层 StreamFn 契约要求把常规失败编码进 stream，而不是 throw。"
+  - "上游依赖未安装，本次没有执行测试。"

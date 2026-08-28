@@ -1,0 +1,7 @@
+id: "AR-14"
+chapter: "04-agent-runtime"
+question: "Runtime 如何获得文件与进程能力？"
+claim: "ExecutionEnv 抽象 FileSystem 与 Shell；NodeExecutionEnv 才提供 cwd/path、spawn、abort/timeout、流回调和文件操作，并从独立 node entrypoint 导出。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/agent/src/harness/env/nodejs.ts", symbol: "NodeExecutionEnv", lines: "347-695" }
+verification: { method: "read adapter implementation and static tests", status: "verified" }
+notes: ["Core/Harness 不会凭空获得 OS 权限。"]

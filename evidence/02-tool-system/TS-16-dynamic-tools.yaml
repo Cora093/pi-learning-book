@@ -1,0 +1,7 @@
+id: "TS-16"
+chapter: "02-tool-system"
+question: "动态工具怎样形成可重放边界？"
+claim: "应用 registry 与当前 context 分离；addedToolNames 记录 transcript load point，next-turn refresh 再更新工具集合。"
+source: { repository: "https://github.com/earendil-works/pi", tag: "v0.84.3", commit: "4e58f324fae8ebfa98a3d45181fb248072a2afac", file: "packages/coding-agent/src/core/agent-session.ts", symbol: "_installAgentNextTurnRefresh", lines: "540-572" }
+verification: { method: "trace registry, marker and next-turn refresh", status: "verified" }
+notes: ["这是当前 Coding Agent 实现，不是通用 Skill 或 MCP 规范。"]
