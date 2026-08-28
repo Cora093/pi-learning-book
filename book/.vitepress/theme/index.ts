@@ -4,6 +4,7 @@ import ContextComposer from "./components/ContextComposer.vue";
 import CourseMap from "./components/CourseMap.vue";
 import EvalTraceBench from "./components/EvalTraceBench.vue";
 import RuntimeLedger from "./components/RuntimeLedger.vue";
+import StreamMessageFlow from "./components/StreamMessageFlow.vue";
 import ToolPipeline from "./components/ToolPipeline.vue";
 import "./style.css";
 
@@ -15,6 +16,7 @@ export default {
     app.component("CourseMap", CourseMap);
     app.component("EvalTraceBench", EvalTraceBench);
     app.component("RuntimeLedger", RuntimeLedger);
+    app.component("StreamMessageFlow", StreamMessageFlow);
     app.component("ToolPipeline", ToolPipeline);
   },
 };

@@ -10,7 +10,7 @@ pageClass: agent-loop-page
 
 <div class="chapter-status">状态：源码证据、正文与可视化已完成</div>
 
-<p class="chapter-lead">Agent Loop 不是“模型一直思考”，而是一段受事件和消息驱动的控制流：把上下文交给模型，接住流式 AssistantMessage，执行其中的工具调用，把结果写回上下文，再决定是否开始下一个 Turn。</p>
+<p class="chapter-lead">Agent Loop 做的事可以先压缩成一句话：把问题交给模型；如果模型要求使用工具，就执行工具、把结果交还给模型；直到模型给出最终回答。源码里的消息、事件和循环，都是在保证这条主线可观察、可中断、可继续。</p>
 
 <div class="source-stamp" aria-label="本章固定源码">
   <div><span>TAG</span><strong>v0.84.3</strong></div>
@@ -18,13 +18,29 @@ pageClass: agent-loop-page
   <div><span>CORE SYMBOL</span><strong>runLoop()</strong></div>
 </div>
 
-学完本章，你应该能做到三件事：
+学完本章，你应该能回答三个具体问题：
 
-1. 区分一次 **Run** 和其中的一次 **Turn**。
-2. 从用户消息一路追到 `toolResult`，再解释为什么模型会被调用第二次。
-3. 预测 steering、follow-up、abort、terminate 和并行工具批次会怎样改变事件顺序。
+1. 为什么“读取配置并总结”通常会请求模型两次？
+2. 模型返回许多 delta，为什么历史里最终只有一条 assistant 消息？
+3. 用户修正方向、取消运行或工具要求停止时，Loop 会在哪个位置停下或继续？
 
-## 先抓住两个边界
+## 先看一遍完整过程
+
+先不看函数名。假设用户提出一个任务：
+
+> 读取 `config.json`，告诉我当前使用的模型。
+
+模型自己不能读取本地文件，所以一次完整处理会是：
+
+```text
+用户提出任务
+  → 模型返回 toolCall：read_file("config.json")
+  → Runtime 执行 read_file
+  → 工具结果写回消息历史
+  → 模型看到结果，回答“当前模型是 ……”
+```
+
+这里模型被请求了两次，但用户只发起了一次任务。为了准确描述这两个尺度，本章使用 **Run** 和 **Turn**：
 
 <div class="concept-pair">
   <div>
@@ -39,155 +55,179 @@ pageClass: agent-loop-page
   </div>
 </div>
 
-这两个概念不是同义词。用户说“读取配置并总结”，模型先请求 `read_file`，拿到结果后再总结：这是 **一个 Run、两个 Turn、两次模型请求**。需要注意，`Run` 是本书对 `agent_start → agent_end` 生命周期的教学映射；Pi Core 没有暴露名为 `Run` 的公开类型。
+所以刚才的例子是 **一个 Run、两个 Turn、两次模型请求**。Turn 01 包含模型提出的 `toolCall` 和对应的 `toolResult`；Turn 02 包含模型读完结果后的最终回答。
+
+`Run` 是本书对 `agent_start → agent_end` 生命周期的教学名称。Pi Core 并没有暴露一个名为 `Run` 的公开类型。
 
 源码锚点：`v0.84.3` · `4e58f3…` · [`packages/agent/src/types.ts` · `AgentEvent`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/types.ts#L421-L443)
+
+下面的轨迹把整条主线展开，并列呈现工具循环与队列消息中 steering、follow-up 的进入位置。
 
 <AgentLoopTrace />
 
 可视化的可维护源文件位于 `diagrams/01-agent-loop/run-lifecycle.mmd`。上面的交互轨迹直接按照 `runAgentLoop()`、`runLoop()` 与 `AgentEvent` 的事件顺序组织。
 
-## 一次 Run 是怎样进入循环的
+## 从 `prompt()` 到循环，只记住两层
 
-高层入口是 `Agent.prompt()`。它拒绝与另一个活动 Run 并发，然后把字符串正规化为 user message，创建 `AbortController`，最后调用低层的 `runAgentLoop()`。
+调用方从 `Agent.prompt()` 进入。高层负责守住一次运行的边界：不允许同一个 Agent 同时启动另一个 Run，把输入整理成 user message，并准备取消信号。低层 `runAgentLoop()` / `runLoop()` 才负责推进事件、模型请求和工具执行。
 
 ```text
-Agent.prompt(input)
+Agent.prompt(input)                 高层：建立并收尾一次 Run
   → normalizePromptInput()
   → runWithLifecycle()
-  → runAgentLoop(prompts, context snapshot, config, signal, streamFn)
-  → runLoop()
+    → runAgentLoop(...)             低层：复制上下文并发出边界事件
+      → runLoop()                   循环：请求模型、执行工具、检查队列
 ```
 
-低层入口先复制初始上下文，把本次 prompt 放进 `currentContext.messages`，然后依次发出：
+低层入口复制上下文，把本次 prompt 放进 `currentContext.messages`，发出 Run、Turn 和 user message 的开始/结束事件，然后进入循环。
 
-```text
-agent_start
-turn_start
-message_start(user)
-message_end(user)
-```
+循环本身也分两层：
 
-接着才进入 `runLoop()`。这里有两个嵌套循环：
+- **内层循环**处理 tool calls 和 steering。只要还有工具结果需要反馈，或者有 steering 要注入，就开始下一个 Turn。
+- **外层循环**只在 Agent 本来要停止时检查 follow-up；有追加任务，就重新进入内层循环。
 
-- **内层循环**处理 tool calls 和 steering。只要还有工具要反馈给模型，或有 steering 待注入，就继续下一个 Turn。
-- **外层循环**在 Agent 本来要停止时检查 follow-up；有 follow-up 就重新进入内层循环。
+| 读者看到的动作 | 源码里的责任点 |
+|---|---|
+| 发起一次任务 | `Agent.prompt()` |
+| 建立 Run、复制上下文、发出初始事件 | `runAgentLoop()` |
+| 请求模型、执行工具、决定是否续轮 | `runLoop()` |
+| 结束活动状态并等待监听器完成 | `runWithLifecycle()` / `finishRun()` |
 
 源码锚点：[`agent.ts` · `Agent.prompt`, `runPromptMessages`, `runWithLifecycle`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent.ts#L347-L507)；[`agent-loop.ts` · `runAgentLoop`, `runLoop`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent-loop.ts#L95-L275)
 
 ## 模型流怎样变成一条消息
 
-每次请求模型前，`streamAssistantResponse()` 依次做四件事：
+模型的回答不是一次性到达的。假设最终回答是“北京今天偏冷”，流里可能先出现“北京”，再出现“今天偏冷”。Pi 不会把这些片段保存成两条消息；它会不断更新同一个临时位置，最后再定稿。
 
-1. 可选地执行 `transformContext(AgentMessage[])`。
-2. 执行 `convertToLlm()`，把应用消息变成模型能理解的 `Message[]`。
-3. 调用注入的 `streamFunction(model, llmContext, options)`。
-4. 把流事件归并为一条最终 `AssistantMessage`。
+下面默认展示一条文本回答。中间一栏始终是 `context.messages[last]`，变化的是这个位置里的内容和 `PARTIAL / FINAL` 状态。
 
-流开始时，partial assistant message 就被放进 `context.messages`；每个 `text_delta`、`thinking_delta` 或 `toolcall_delta` 都替换最后一条 partial，并发出 `message_update`。流结束后，最终消息再替换 partial，最后发出 `message_end`。
+<StreamMessageFlow />
+
+理解这张图后，再把 `streamAssistantResponse()` 分成前后两半：
+
+- **发送前，准备输入。** `transformContext()` 可以裁剪或补充应用消息；`convertToLlm()` 再把它们转换成模型协议中的 `Message[]`。随后，`streamFunction()` 发起真正的模型请求。
+- **接收时，拼装输出。** 流开始时先放入一条 partial assistant message。每个 `text_delta`、`thinking_delta` 或 `toolcall_delta` 到达时，都用最新 partial 替换数组末尾，并发出 `message_update`。流结束后，final message 再替换同一位置，并发出 `message_end`。
+
+| 阶段 | 输入或事件 | 结果 |
+|---|---|---|
+| 整理应用上下文 | `transformContext(AgentMessage[])` | 仍是应用层消息 |
+| 转成模型协议 | `convertToLlm()` | 得到模型可接收的 `Message[]` |
+| 发起请求 | `streamFunction()` | 返回流式事件 |
+| 接收增量 | `text_delta` / `thinking_delta` / `toolcall_delta` | 替换 partial，发出 `message_update` |
+| 完成响应 | 流结束 | 替换 final，发出 `message_end` |
 
 <div class="chapter-rule">
   <strong>关键不变量</strong>
-  <span>同一个 assistant response 在上下文里只占一个位置：流式阶段不断替换 partial，结束时再由 final message 定稿，而不是把每个 delta 追加成新消息。</span>
+  <span>delta 是更新，不是新消息。同一个 assistant response 在上下文里始终只占一个位置。</span>
 </div>
 
 源码锚点：[`agent-loop.ts` · `streamAssistantResponse`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent-loop.ts#L281-L371)
 
 ## Tool Call 为什么让 Loop 继续
 
-模型流结束后，`runLoop()` 从 `AssistantMessage.content` 中筛选所有 `type === "toolCall"` 的内容块。真正驱动工具循环的是这些内容块，不是只看 `stopReason === "toolUse"`。
+回到“读取 `config.json`”的例子。第一个 Turn 结束时，模型没有给出答案，而是留下了一个已经定稿的 `AssistantMessage(toolCall)`。`runLoop()` 从最终消息的 `content` 中找出 `type === "toolCall"` 的内容块，然后执行工具。
 
-每个工具调用会经历：
+对读者而言，主线只有三步：
 
 ```text
-tool_execution_start
-  → 查找工具
-  → prepareArguments（可选）
-  → validateToolArguments
-  → beforeToolCall（可阻止）
-  → tool.execute(signal, onUpdate)
-  → afterToolCall（可改写结果）
-tool_execution_end
-  → message_start(toolResult)
-  → message_end(toolResult)
+assistant(toolCall)
+  → Runtime 执行工具
+  → toolResult 写回消息历史
 ```
 
-工具结果随后被追加到 `currentContext.messages`。只要这批工具没有整体要求 terminate，`hasMoreToolCalls` 就保持为真，于是下一个 Turn 会再次请求模型。模型看到的上下文已经是：
+工具结果写回后，下一次模型请求看到的已经不是原问题，而是带有行动结果的完整历史：
 
 ```text
 user → assistant(toolCall) → toolResult
 ```
 
-这就是 Tool Loop 的闭环：**模型提出动作，Runtime 执行动作，结果作为新证据回到模型。**
+所以 Loop 继续的原因不是“模型还在后台思考”，而是 **Runtime 新增了一条模型尚未见过的 `toolResult`，需要再请求一次模型**。
+
+源码里，工具执行还会细分为查找工具、准备参数、schema 校验、`beforeToolCall`、`tool.execute()` 和 `afterToolCall`。这些属于第二章的重点；第一章只需先抓住闭环。
+
+<div class="chapter-rule">
+  <strong>判断工具循环的直接依据</strong>
+  <span><code>runLoop()</code> 检查最终 <code>AssistantMessage.content</code> 里的 <code>toolCall</code> 内容块，而不是只看 <code>stopReason === "toolUse"</code>。</span>
+</div>
 
 源码锚点：[`agent-loop.ts` · `runLoop`, `executeToolCalls`, `prepareToolCall`, `executePreparedToolCall`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent-loop.ts#L192-L224)
 
 ## Steering 和 Follow-up 不在同一个时机
 
-两者都是排队的 user message，但轮询点不同。
+想象模型已经提出两个工具调用，这时用户补充一句：“只看生产环境。”这条 steering 不会撤回已经定稿的 tool calls，也不会跳过当前工具批次。Loop 会先完成工具、写入结果、结束当前 Turn，然后才把 steering 放进下一次模型请求。
+
+Follow-up 更晚。它只在工具和 steering 都已经处理完、Agent 本来准备退出时被检查。
 
 | 队列 | 何时检查 | 会不会跳过当前工具批次 | 作用 |
 |---|---|---|---|
 | Steering | 当前 Turn 完成之后、下一次模型请求之前 | 不会 | 修正正在进行的 Run |
 | Follow-up | 已经没有工具和 steering，Agent 本来要退出时 | 不会 | 在同一 Run 尾部追加工作 |
 
-因此，“steer 是立即打断工具”是错误理解。当前 assistant message 已经发出的整批工具会先完成，tool results 会先进入上下文；steering 随后才在下一个 Turn 注入。
-
 队列默认都是 `one-at-a-time`：每个轮询点只取最老的一条。也可以改为 `all`，一次注入当时的全部队列消息。
+
+要建立时间感，可以回到本章开头的交互轨迹，切换到“队列消息”：**工具批次 → `turn_end` → steering → 新 Turn → 本来要停 → follow-up**。
 
 源码锚点：[`agent-loop.ts` · `runLoop`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent-loop.ts#L166-L274)；[`agent.ts` · `PendingMessageQueue`, `steer`, `followUp`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent.ts#L120-L153)
 
 ## 五种“停下来”不是一回事
 
-### 正常收敛
+先用一张表区分它们影响的是哪条“继续路径”：
 
-AssistantMessage 没有 tool call，steering 和 follow-up 也都为空。内层、外层循环自然退出，发出 `agent_end`。
+| 情况 | Loop 接下来做什么 | 最容易误解的边界 |
+|---|---|---|
+| 正常收敛 | 没有 tool call 和队列消息，正常退出 | 这是自然结束，不是取消 |
+| `error` / `aborted` | 结束当前 Turn 和 Run，不执行消息里的工具 | abort 是协作式取消 |
+| `length` | 不执行可能被截断的工具调用；写入 error tool results 后续轮 | 不是直接把半截参数交给工具 |
+| 工具结果 `terminate: true` | 关闭“这批工具自动续轮”这条路径 | 队列消息仍可能让 Run 继续 |
+| `shouldStopAfterTurn` | Turn 完整结束后、检查队列前退出 | 不会取消正在执行的工具 |
 
-### `error` / `aborted`
+其中有三个边界值得单独记住：
 
-如果最终 AssistantMessage 的 `stopReason` 是 `error` 或 `aborted`，`runLoop()` 立即发出本次 `turn_end` 和 `agent_end`，不执行其中的工具调用。
+1. `Agent.abort()` 只是触发 `AbortController`。signal 会传给 provider stream、hooks 和 tool；停止速度取决于它们是否及时响应，所以这是**协作式取消**。
+2. `length` 可能留下勉强可解析、但语义不完整的工具参数。Pi 为这些调用生成 error tool results，让模型下一轮重发完整调用。
+3. 一批工具中必须是**每个最终结果**都带 `terminate: true`，才会关闭工具自动续轮。一个 terminate 加一个普通结果仍会续轮。
 
-`Agent.abort()` 本身只是触发当前 `AbortController`。这个 signal 会传给 provider stream、hooks 和 tool；能多快停下取决于被调用方是否遵守 signal，所以它是**协作式取消**，不是强制杀死执行线程。
-
-低层 `StreamFn` 的契约要求：请求或运行失败应编码为流中的 error 事件和最终失败 AssistantMessage，而不是 throw。若遗留实现真的 throw，高层 `Agent.runWithLifecycle()` 会兜底合成失败消息，并补齐 `message_start/end → turn_end → agent_end`。
-
-### `length`
-
-若输出达到 token 上限，流里残留的 tool call 参数可能只是“勉强能解析”的截断 JSON。Pi 不执行这条 AssistantMessage 中的任何工具，而是为每个调用生成 error tool result，让模型在下一 Turn 重新发出完整调用。
-
-### `terminate: true`
-
-工具、被阻止的 `beforeToolCall` 或 `afterToolCall` 都可以给结果加 `terminate: true`。它只表示“不要因为这批工具自动再请求模型”。只有这一批**每个最终结果**都为 terminate，这条自动续轮路径才关闭；一个 terminate 加一个普通结果仍会继续下一 Turn。即使整批都 terminate，已排队的 steering 或 follow-up 仍可能让同一个 Run 继续。
-
-### `shouldStopAfterTurn`
-
-这是 Turn 完整结束后的优雅停止点。回调在 assistant message 和 tool results 都已写入、`turn_end` 已发出之后执行；返回 true 会在轮询 steering/follow-up 之前发出 `agent_end`。它不取消正在运行的工具，也不改写 `stopReason`。
+低层 `StreamFn` 的契约要求把请求失败编码进流事件和最终失败消息，而不是 throw。若遗留实现真的 throw，高层 `Agent.runWithLifecycle()` 会兜底合成失败消息，并补齐结束事件。
 
 源码锚点：[`agent-loop.ts` · error/aborted, length, shouldStopAfterTurn`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent-loop.ts#L192-L257)；[`agent-loop.ts` · `shouldTerminateToolBatch`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent-loop.ts#L582-L584)
 
-## 并行工具的完成顺序和记录顺序
+## 并行工具有两种顺序
 
-`Agent` 在这一版的默认 `toolExecution` 是 `parallel`，但这不等于“所有步骤一股脑并行”：
+假设模型依次请求工具 A 和 B。A 读取一个大文件，需要 800ms；B 读取一个小文件，只需 100ms。
+
+界面应该尽快告诉用户 B 已完成，所以完成事件按真实时间出现：`B → A`。但历史记录如果也按完成速度写入，每次运行都可能得到不同顺序。Pi 因此把结果恢复为模型最初提出的顺序：`A → B`。
+
+| 观察位置 | 顺序 | 为什么 |
+|---|---|---|
+| `tool_execution_end` 事件 | B → A | 及时呈现真实完成进度 |
+| transcript 中的 `toolResult` | A → B | 保持消息历史稳定 |
+
+完整执行规则是：
 
 1. 工具调用仍按 assistant 源顺序逐个预检。
 2. 通过预检的工具才并发执行。
 3. `tool_execution_end` 按真实完成顺序发出，方便 UI 及时显示进度。
 4. `ToolResultMessage` 和 `turn_end.toolResults` 最终仍按 assistant 源顺序写入，保证 transcript 稳定。
 
-如果全局配置是 `sequential`，或者同一批任意一个目标工具声明 `executionMode: "sequential"`，**整批**都会串行执行。
-
-| 假设模型依次发出 A、B | A 较慢、B 较快 |
-|---|---|
-| `tool_execution_end` | B → A |
-| transcript 中的 toolResult | A → B |
+`Agent` 在固定版本中的默认 `toolExecution` 是 `parallel`。如果全局配置为 `sequential`，或者同一批任意一个目标工具声明 `executionMode: "sequential"`，**整批**都会改为串行执行。
 
 源码锚点：[`agent-loop.ts` · `executeToolCalls`, `executeToolCallsParallel`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent-loop.ts#L411-L553)；测试锚点：[`agent-loop.test.ts` · completion order / source order](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/test/agent-loop.test.ts#L586-L679)
 
 ## `agent_end` 之后才真正 idle
 
-`agent_end` 是 Loop 产生的最后一个事件，但高层 `Agent` 会按订阅顺序 await 每个 listener。只有 `agent_end` listeners 全部完成，`finishRun()` 才清掉活动 Run，并把 `isStreaming` 设回 false。
+看到 `agent_end`，只能说明 Loop 已经发出了最后一个事件，还不能说明所有收尾工作都已完成。
 
-所以持久化监听器可以把 `agent_end` 当作“最后一次落盘屏障”；调用方要确认整个 Run 已经 settled，应等待 `prompt()` 或 `waitForIdle()`，而不是仅仅观察到事件。
+例如，一个监听器会在 `agent_end` 时把最终历史写入磁盘。高层 `Agent` 会等待这些 listener 依次完成，之后 `finishRun()` 才清掉活动 Run，并把 `isStreaming` 设回 false。
+
+```text
+agent_end emitted
+  → await agent_end listeners
+  → finishRun()
+  → isStreaming = false
+  → prompt() / waitForIdle() 完成
+```
+
+因此，监听器可以把 `agent_end` 当作最后一次落盘机会；调用方要确认整个 Run 已经 settled，应等待 `prompt()` 或 `waitForIdle()`。
 
 源码锚点：[`agent.ts` · `subscribe`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent.ts#L240-L253)、[`processEvents`, `finishRun`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent.ts#L529-L590)
 
@@ -218,5 +258,5 @@ AssistantMessage 没有 tool call，steering 和 follow-up 也都为空。内层
 
 <section class="chapter-summary">
   <h2>本章收束</h2>
-  <p>现在可以沿着一次 Run 解释 Turn、模型请求、Tool Result、steering、follow-up 与 settlement 的先后关系，并知道哪些信号不能被误当成整个操作已经完成。</p>
+  <p>现在再看 Agent Loop，可以先讲清一条业务主线：模型提出动作，Runtime 执行动作，结果回到下一次模型请求。然后再用 Run / Turn 标出边界，用 partial / final 解释流式消息，用 steering / follow-up 解释续轮时机，最后用 settlement 区分“最后一个事件”和“真正空闲”。</p>
 </section>
