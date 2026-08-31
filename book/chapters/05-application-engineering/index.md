@@ -10,7 +10,7 @@ pageClass: chapter-detail-page
 
 <div class="chapter-status">状态：源码证据、正文与可视化已完成</div>
 
-<p class="chapter-lead">一个 Agent 能跑完 Demo，不等于它可以上线。应用工程要把每次运行变成一份能关联、复盘、判分和比较的证据：协议怎样结束，工具做了什么，最终业务状态是否正确，以及这次结果花了多少时间、token 和成本。</p>
+<p class="chapter-lead">一个 Agent 能跑完 Demo，还不能证明它可以上线。应用工程要为每次运行留下证据：模型怎样结束，工具做了什么，最终业务结果是否正确，以及整个过程花了多少时间、token 和成本。只有这些证据能关联起来，结果才可以复盘、判分和比较。</p>
 
 <div class="source-stamp" aria-label="本章固定源码">
   <div><span>TAG</span><strong>v0.84.3</strong></div>
@@ -18,15 +18,15 @@ pageClass: chapter-detail-page
   <div><span>APP CONTRACT</span><strong>trace + evaluator + metrics</strong></div>
 </div>
 
-学完本章，你应该能回答三个具体问题：
+读完本章，你应该能回答三个问题：
 
 1. `stopReason=stop`、所有 Tool 都成功，为什么任务仍可能失败？
 2. 一次用户操作跨过重试、工具和多个 Core Run 时，延迟和失败应该怎样归因？
 3. 比较两个 Agent 框架时，怎样证明它们跑的是同一个实验？
 
-## 先看一个“全绿但失败”的任务
+## 没有报错，任务也可能失败
 
-假设 Case 要求 Agent 修改 `config.json` 并补上必需字段 `owner`。一次运行显示：
+假设任务要求 Agent 修改 `config.json`，补上必需字段 `owner`。一次运行显示：
 
 ```text
 write_file          isError = false
@@ -34,17 +34,17 @@ assistant           stopReason = stop
 AgentSession        agent_settled
 ```
 
-从协议到工具全部“正常”，但最终文件没有 `owner`。真正检查 fixture output 的 grader 应该判定 **FAIL**。
+协议正常结束，工具也没有报错，但最终文件里没有 `owner`。只要 grader 真正检查文件结果，这次任务就应该判定为 **FAIL**。
 
-下面的交互并列四种运行：一次通过、重试后通过、工具失败后修复，以及协议成功但业务失败。
+下面的交互展示四种运行：一次通过、重试后通过、工具失败后修复，以及协议成功但业务失败。
 
 <EvalTraceBench />
 
-交互中的时间、token、cost 和 Case id 是教学样例，不是固定源码基准数据；它演示的是证据关系：协议信号、工具结果和业务 grader 必须分开记录。
+交互中的时间、token、cost 和 Case id 是教学样例，不是固定源码基准数据。它要说明的是：协议信号、工具结果和业务 grader 必须分开记录。
 
-## 评测必须先定义 Case
+## 先把任务定义成 Case
 
-“这个 Agent 表现怎么样？”不是可执行问题。至少要先固定：
+“这个 Agent 表现怎么样？”还不是一个能直接运行的评测。开始前至少要固定：
 
 - 输入和初始 fixture；
 - 允许哪些 Tool 与副作用；
@@ -68,11 +68,11 @@ interface EvaluationCase {
 }
 ```
 
-这不是 Pi 导出的类型，而是本章建议的实验边界。没有 Case 和 grader，一条漂亮 Session 只能证明“曾经成功过一次”，不能证明成功率、稳定性或回归风险。
+这不是 Pi 导出的类型，而是本章建议的实验边界。没有 Case 和 grader，一条漂亮的 Session 只能证明“曾经成功过一次”，无法说明成功率、稳定性或回归风险。
 
 图源位于 `diagrams/05-application-engineering/trace-to-evaluation.mmd`。
 
-## Trace 要把分散事实关联起来
+## Trace 要把事件串起来
 
 Core `AgentEvent` 已提供实时骨架：
 
@@ -85,7 +85,7 @@ tool_execution_start / update / end
 
 `toolCallId` 可以关联一个 Run 内的调用与结果，AssistantMessage 带 provider、model、Usage、stopReason 和 timestamp。AgentSession 又增加 retry、compaction、queue、entry append 和 `agent_settled`。
 
-但这些原始事件没有统一 `eventId`、`traceId`、`caseId` 或接收时间，也没有自动形成跨层 trace store。应用至少要补一层归一化 envelope：
+这些原始事件能说明局部发生了什么，但没有统一的 `eventId`、`traceId`、`caseId` 或接收时间，也不会自动形成跨层 trace store。应用至少要补一层归一化 envelope：
 
 ```ts
 interface NormalizedTraceEvent {
@@ -101,20 +101,20 @@ interface NormalizedTraceEvent {
 }
 ```
 
-这同样是本章建议的应用类型，不是 Pi 内建类型。原始事件应保留用于取证；normalized trace 用于关联、查询、聚合和跨 adapter 比较。
+这同样是本章建议的应用类型，不是 Pi 内建类型。原始事件留作取证，normalized trace 则用于关联、查询、聚合和跨 adapter 比较。
 
 源码锚点：[`types.ts` · `AgentEvent`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/types.ts#L421-L443)；[`agent-session.ts` · `AgentSessionEvent`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/coding-agent/src/core/agent-session.ts)
 
-## 先命名计时边界，再记录延迟
+## 延迟从哪里算到哪里
 
-第四章已经说明：第一次 `agent_end` 后，AgentSession 仍可能 retry、compact 或继续处理队列。评测一个 Case attempt 的端到端时间时，合理边界是：
+第一次 `agent_end` 后，AgentSession 仍可能 retry、compact 或继续处理队列。因此，一个 Case attempt 的端到端时间不能在这里停止。更合理的边界是：
 
 ```text
 start = host accepts one Case attempt
 end   = AgentSession emits agent_settled, then grader completes
 ```
 
-不同指标不能都叫“响应时间”：
+不同阶段要分别计时，不能都叫“响应时间”：
 
 | 指标 | 起点 → 终点 |
 |---|---|
@@ -124,27 +124,27 @@ end   = AgentSession emits agent_settled, then grader completes
 | retry delay | retry scheduled → next provider attempt starts |
 | wall latency | Case accepted → `agent_settled` + grader completes |
 
-事件 contract 没有统一计时字段，message timestamp 也覆盖不了 queue wait、retry sleep 和所有工具。实验宿主应使用同一个 monotonic clock 记录接收时间，避免系统时钟调整造成错误时长。
+事件 contract 没有统一计时字段，message timestamp 也覆盖不了 queue wait、retry sleep 和所有工具。实验宿主应使用同一个 monotonic clock 记录接收时间，避免系统时钟调整影响结果。
 
-多次 attempts 后才能计算 median、p50、p95 和 failure distribution。单次运行没有 p95，把消息数当成功率分母也没有意义。
+只有多次 attempts 才能计算 median、p50、p95 和 failure distribution。单次运行没有 p95，消息数也不能当作成功率分母。
 
-## Telemetry 有词汇表，不等于已经自动埋点
+## Telemetry 还不会自动出现
 
-固定源码包含独立 `pi-telemetry` contract、no-op/in-memory context，以及：
+固定源码已经提供独立的 `pi-telemetry` contract、no-op/in-memory context，以及一组统一词汇：
 
 - `pi.ai.request` span schema：provider、model、stop reason、token、cost、chunk count、TTFC；
 - `pi.harness.*` span schema：run、turn、tool、checkpoint、navigation 等 vocabulary；
 - `startAiSpan()` / `startHarnessSpan()` typed helper。
 
-但 production call site 核对没有发现当前 `Agent`、`AgentSession` 或 provider 自动调用这些 starters，`AgentHarness` driver 也仍是 scaffold。准确说法是“可复用 typed telemetry contract 已存在”，不是“Coding Agent 已自动生成完整 spans”。
+但 production call site 中，没有发现当前 `Agent`、`AgentSession` 或 provider 自动调用这些 starters；`AgentHarness` driver 也仍是 scaffold。准确说法是“可复用的 typed telemetry contract 已存在”，不是“Coding Agent 已经自动生成完整 spans”。
 
-应用可以订阅现行 events 接 OpenTelemetry，也可以在 provider、tool 和 host 边界显式调用 helper；无论哪种方式，都要测试 trace 关联与缺失数据。
+应用可以订阅现行 events 接入 OpenTelemetry，也可以在 provider、tool 和 host 边界显式调用 helper。无论选择哪条路径，都要测试 trace 关联和缺失数据。
 
 源码锚点：[`harness/telemetry.ts` · `AI_TELEMETRY_SCHEMA`, `HARNESS_TELEMETRY_SCHEMA`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/harness/telemetry.ts#L42-L144)
 
-## 协议结束、工具结果和业务成功是三条轴
+## 三种“成功”不能混用
 
-### `stopReason` 只说明模型响应怎样停下
+### 模型响应怎样停下
 
 | 值 | 协议含义 | 能否证明业务成功 |
 |---|---|---|
@@ -158,27 +158,29 @@ end   = AgentSession emits agent_settled, then grader completes
 
 源码锚点：[`packages/ai/src/types.ts` · `StopReason`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/ai/src/types.ts#L405-L405)
 
-### Tool error 只说明一次工具调用失败
+`stopReason` 只说明模型响应怎样停下，不负责判断业务结果。
 
-找不到 Tool、参数校验失败、hook block/throw、execute throw 和 after-hook throw，都会归一化成 `isError=true` 的 ToolResultMessage。模型通常能在下一 Turn 读取错误并修复。
+### 工具调用没有报错
+
+找不到 Tool、参数校验失败、hook block/throw、execute throw 和 after-hook throw，都会归一化成 `isError=true` 的 ToolResultMessage。模型通常能在下一 Turn 看到错误并修复。
 
 因此两种情况都成立：
 
 - 中间 Tool 失败，最终 Case 通过；
 - 所有 Tool 表面成功，最终 Case 失败。
 
-### Grader 才判断业务目标是否达到
+### 业务目标真正达成
 
-代码任务应检查测试、类型、文件 diff 和约束；数据任务检查结构化记录与不变量；操作任务检查外部最终状态和副作用次数；文本任务可以组合规则、人工标注和 model grader，并记录 grader 版本。
+这一层由 grader 判断。代码任务应检查测试、类型、文件 diff 和约束；数据任务检查结构化记录与不变量；操作任务检查外部最终状态和副作用次数；文本任务可以组合规则、人工标注和 model grader，并记录 grader 版本。
 
 <div class="chapter-rule">
   <strong><code>stop</code> 不是 <code>taskSuccess</code></strong>
   <span>协议正常结束、工具没有报错，都不能替代针对 expected outcome 的 evaluator。</span>
 </div>
 
-## Failure taxonomy 要保留责任层
+## 失败发生在哪一层
 
-一个 `error=true` 无法回答应该重试 provider、修复 prompt、修改工具还是回滚业务。建议保留五层：
+只记录一个 `error=true`，无法判断应该重试 provider、修复 prompt、修改工具还是回滚业务。建议保留五层：
 
 | 层 | 固定源码可见信号 | 应用需要补什么 | 最终是否必败 |
 |---|---|---|---|
@@ -188,50 +190,52 @@ end   = AgentSession emits agent_settled, then grader completes
 | runtime | transform/listener/custom stream throw | component、code、stack ref、cleanup result | 通常结束当前 Run |
 | application | Pi 无内建字段 | expected、actual、grader、score | 由 evaluator 判定 |
 
-`StreamFn` 希望 request/model/runtime failure 作为最终 assistant error message 返回；若 custom stream、transform 或 listener 直接 throw，`Agent.handleRunFailure()` 也会合成 `stopReason=error`。统一字段有利于 Loop 收敛，却会压平责任层，所以应用应在失败发生的边界尽早记录稳定的 `failure.layer`、`failure.code` 和 `retryable`，不要只靠 error string 反推。
+`StreamFn` 要求 request/model/runtime failure 作为最终 assistant error message 返回。如果 custom stream、transform 或 listener 直接 throw，`Agent.handleRunFailure()` 也会合成 `stopReason=error`。
 
-## Token、成本和 SessionStats 回答不同问题
+统一错误消息有利于 Loop 收敛，却会压平责任层。应用应在失败发生时就记录稳定的 `failure.layer`、`failure.code` 和 `retryable`，不要事后只靠 error string 反推。
 
-### Usage 先保留原始分项
+## Token、成本和累计账本
 
-Pi `Usage` 包含 input、output、cacheRead、cacheWrite、可选 cacheWrite1h、可选 reasoning、totalTokens 和 cost 分项。
+### Token 先保留原始分项
+
+Pi `Usage` 包含 input、output、cacheRead、cacheWrite、可选 cacheWrite1h、可选 reasoning、totalTokens 和 cost 分项。保存这些原始值，后面才能解释差异。
 
 两个常见错误是：
 
 1. `reasoning` 是 output 的子集，却被再次加到 output，造成重复计数；
 2. 只保存 totalTokens 或美元总价，丢掉 cache 命中和模型路由差异。
 
-ToolResultMessage 也可以带自己的 Usage，但注释明确它不属于主 LLM context accounting。报告要么单独列 Tool usage，要么显式写出合并规则。
+ToolResultMessage 也可以带自己的 Usage，但它不属于主 LLM context accounting。报告要么单独列 Tool usage，要么明确写出合并规则。
 
 源码锚点：[`types.ts` · `Usage`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/ai/src/types.ts#L382-L403)
 
-### Cost 是价格快照上的派生值
+### 成本依赖价格快照
 
-`calculateCost()` 根据模型价目与 provider usage 计算 input、output、cache read/write，还会按总 input 选择 pricing tier 并处理特定 cache write 规则。
+`calculateCost()` 根据模型价目和 provider usage 计算 input、output、cache read/write。它还会按总 input 选择 pricing tier，并处理特定 cache write 规则。
 
-所以成本比较必须同时保留 provider、请求 model、实际 response model、API/routing、价格 catalog 时间快照、原始 token 分项，以及 retry、compaction 和 grader 是否计入。只留下 `$0.02` 无法复核。
+所以，成本比较必须保留 provider、请求 model、实际 response model、API/routing、价格 catalog 时间快照和原始 token 分项。retry、compaction 和 grader 是否计入也要写清楚。只留下 `$0.02` 无法复核。
 
 源码锚点：[`models.ts` · `calculateCost`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/ai/src/models.ts#L878-L927)
 
 ### SessionStats 是累计账本
 
-`AgentSession.getSessionStats()` 扫描全部 entries，包括已经被 compaction 从当前 Context 替代的历史、branch summary、compaction 和带 Usage 的 Tool result。它回答“整个 Session 累计花了多少”，不是“当前 Case attempt 花了多少”。
+`AgentSession.getSessionStats()` 扫描全部 entries，包括已经被 compaction 从当前 Context 替代的历史、branch summary、compaction 和带 Usage 的 Tool result。它回答的是“整个 Session 累计花了多少”，不是“当前 Case attempt 花了多少”。
 
-它没有 case/attempt id、wall latency、TTFT、tool duration、task success、failure layer、p50/p95 或成功率。这些必须由实验 harness 在 attempt 边界采集。`contextUsage` 又是当前分支 Context 的另一种估计，不能与累计账本混用。
+它没有 case/attempt id、wall latency、TTFT、tool duration、task success、failure layer、p50/p95 或成功率。这些数据必须由实验 harness 在 attempt 边界采集。`contextUsage` 是当前分支 Context 的另一种估计，也不能和累计账本混用。
 
 源码锚点：[`agent-session.ts` · `getSessionStats`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/coding-agent/src/core/agent-session.ts#L3242-L3296)
 
-## Session 导出只是 Dataset 原料
+## Session 导出还不是 Dataset
 
-固定源码可以导出 JSONL 或 HTML：JSONL share export 只导出当前 root-to-leaf branch 并重写 parent chain；HTML export 可以带 entries、leaf、system prompt 和 Tool definitions，适合人工复盘。
+固定源码可以导出 JSONL 或 HTML。JSONL share export 只导出当前 root-to-leaf branch，并重写 parent chain；HTML export 可以带 entries、leaf、system prompt 和 Tool definitions，适合人工复盘。
 
-但这些产物没有 Case、ground truth、grader result、attempt 参数和成功标签。固定 production source 也没有通用 Dataset/Evaluator/Pass-rate runner。官方文档提到把 Session 发布到外部 Hugging Face dataset，也不等于本地已经拥有可重复 evaluation。
+但这些产物没有 Case、ground truth、grader result、attempt 参数和成功标签。固定 production source 也没有通用的 Dataset/Evaluator/Pass-rate runner。官方文档提到可以把 Session 发布到外部 Hugging Face dataset，也不代表本地已经具备可重复 evaluation。
 
 源码锚点：[`session-export.ts` · `exportSessionToJsonl`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/coding-agent/src/core/session-export.ts)
 
-## 先写 Grader，再收集案例
+## 先写 Grader，再收集 Case
 
-如果先收集“看起来不错”的成功 Session，再反推评分规则，数据集会系统性高估质量。更稳妥的顺序是：
+如果先收集“看起来不错”的成功 Session，再反推评分规则，数据集会系统性高估质量。顺序应该反过来：
 
 ```text
 定义 expected outcome
@@ -242,11 +246,11 @@ ToolResultMessage 也可以带自己的 Usage，但注释明确它不属于主 L
   → 聚合成功率、延迟、成本和失败分布
 ```
 
-数据集至少覆盖正常路径、空输入、边界大小、权限拒绝、瞬态 provider 失败、Tool error、部分副作用和恢复，而不是只保留成功记录。
+数据集至少要覆盖正常路径、空输入、边界大小、权限拒绝、瞬态 provider 失败、Tool error、部分副作用和恢复，不能只保留成功记录。
 
-## 产品形态取决于谁控制下一步
+## 谁来决定下一步
 
-Autonomous、Workflow、Hybrid 是本书的产品设计词，不是固定源码导出的 runtime type：
+本书用 Autonomous、Workflow 和 Hybrid 区分三种控制方式。它们是产品设计词，不是固定源码导出的 runtime type：
 
 | 形态 | 下一步主要由谁决定 | 适合 | 主要工程要求 |
 |---|---|---|---|
@@ -254,11 +258,11 @@ Autonomous、Workflow、Hybrid 是本书的产品设计词，不是固定源码�
 | Workflow | 宿主状态机控制阶段和转移 | 合规流程、步骤稳定 | 状态迁移、幂等、补偿、人工门禁 |
 | Hybrid | Workflow 包住局部 agentic Run | 大多数业务 Agent | 同时定义 workflow state 与 Run boundary |
 
-Pi 提供 `prompt/continue`、`shouldStopAfterTurn`、`prepareNextTurn`、Tool、Extension 和 Session primitives，让应用组合这些形态。能写成确定性业务规则的部分优先交给 Workflow；需要语义判断或开放式探索的局部再交给 Autonomous Loop。
+Pi 提供 `prompt/continue`、`shouldStopAfterTurn`、`prepareNextTurn`、Tool、Extension 和 Session primitives，让应用组合这些形态。能写成确定规则的部分优先交给 Workflow；需要语义判断或开放式探索的局部，再交给 Autonomous Loop。
 
-## 公平比较先冻结共享实验
+## 先对齐实验，再比较框架
 
-跨框架比较时，先冻结：
+跨框架比较前，要先固定共同条件：
 
 - 同一 Case input、fixture 和 expected outcome；
 - 同一 provider/model、temperature、reasoning、max token、timeout 与 retry policy；
@@ -266,7 +270,7 @@ Pi 提供 `prompt/continue`、`shouldStopAfterTurn`、`prepareNextTurn`、Tool�
 - 同一 grader、attempt 数和聚合方法；
 - 相同的 latency、token、cost 与 failure normalization。
 
-不同框架只实现自己的 adapter：
+然后，不同框架只实现自己的 adapter：
 
 ```text
 runCase(case, config, tools)
@@ -276,7 +280,7 @@ runCase(case, config, tools)
   → normalized metrics
 ```
 
-本文没有读取或验证 LangGraph 源码，因此不声称其内部 loop、state、checkpoint 或性能如何。可比较的是 task success、partial score、Tool Contract 行为、failure 分布、wall latency、token/cost 和 trace completeness；私有事件数、节点数或存储行数不是共同业务结果。
+本文没有读取或验证 LangGraph 源码，因此不判断它内部的 loop、state、checkpoint 或性能。这里能公平比较的是 task success、partial score、Tool Contract 行为、failure 分布、wall latency、token/cost 和 trace completeness。各框架私有的事件数、节点数或存储行数，不是共同业务结果。
 
 图源位于 `diagrams/05-application-engineering/comparison-contract.mmd`。
 
@@ -285,7 +289,7 @@ runCase(case, config, tools)
   <span>模型、工具、重试、grader 或 Case 任意一项不同，结论都可能只是实验条件差异。</span>
 </div>
 
-## 上线前应交付一份证据包
+## 上线前的证据清单
 
 - Case dataset 有版本、来源、覆盖范围和敏感数据规则。
 - 每个 attempt 有 traceId/caseId/attemptId 与不可变运行配置。
@@ -310,9 +314,9 @@ runCase(case, config, tools)
   <article><code>SOURCE NOTES</code><h3>完整研究索引</h3><p><code>evidence/05-application-engineering/source-notes.md</code></p></article>
 </div>
 
-五章 Book 内容至此形成一条完整主线：Loop 决定下一步，Tool 把请求变成受控副作用，Context 决定模型此刻看到什么，Runtime 负责持久化与恢复，Application Engineering 再把运行变成可判分、可比较的证据。
+五章到这里形成一条完整主线：Loop 决定下一步，Tool 把请求变成受控副作用，Context 决定模型此刻看到什么，Runtime 负责持久化与恢复，Application Engineering 再把运行变成可判分、可比较的证据。
 
 <section class="chapter-summary">
   <h2>本章收束</h2>
-  <p>现在再评价一个 Agent，不应只看它是否说完或工具是否报错，而要从 Case expected outcome 出发，用关联后的 trace 解释每一层发生了什么，再由 grader、attempts 和可复核 metrics 给出结论。</p>
+  <p>评价一个 Agent，不能只看模型是否正常结束、工具是否报错。先用 Case 定义期望结果，再用 trace 串起各层事件，最后由 grader 判断业务成功，并用多次 attempts 的延迟、token、成本和失败分布支持结论。</p>
 </section>
