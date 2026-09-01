@@ -238,14 +238,26 @@ agent_end emitted
 
 源码锚点：[`agent.ts` · `subscribe`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent.ts#L240-L253)、[`processEvents`, `finishRun`](https://github.com/earendil-works/pi/blob/4e58f324fae8ebfa98a3d45181fb248072a2afac/packages/agent/src/agent.ts#L529-L590)
 
-## 四个常见误解
+## 四个常见误解，以及对应正解
 
-<div class="misconception-list">
-  <div><strong>工具是否执行，看 <code>toolCall</code></strong><p>Loop 直接检查 AssistantMessage.content。stopReason 是结果标签，error、aborted 和 length 另有控制语义。</p></div>
-  <div><strong>Steering 不会打断当前工具</strong><p>当前 Turn 的工具全部完成、turn_end 发出后，Loop 才注入 steering。</p></div>
-  <div><strong>并行只会打乱完成事件</strong><p>持久化 tool results 时，Pi 仍会恢复 assistant 源顺序。</p></div>
-  <div><strong><code>agent_end</code> 还不是 idle</strong><p>异步 listeners 处理完最后一个事件后，Run 才 settled。</p></div>
-</div>
+<section class="misconception-corrections" aria-label="常见误解与正解对照">
+  <article>
+    <div class="misconception-corrections__side misconception-corrections__side--wrong"><span>误解</span><strong>是否进入工具执行，由 <code>stopReason</code> 决定</strong></div>
+    <div class="misconception-corrections__side misconception-corrections__side--right"><span>正解</span><p><strong>看 <code>AssistantMessage.content</code> 里是否存在 <code>toolCall</code>。</strong><code>stopReason</code> 是结果标签；<code>error</code>、<code>aborted</code> 和 <code>length</code> 另有控制语义。</p></div>
+  </article>
+  <article>
+    <div class="misconception-corrections__side misconception-corrections__side--wrong"><span>误解</span><strong>Steering 会立即打断正在执行的工具</strong></div>
+    <div class="misconception-corrections__side misconception-corrections__side--right"><span>正解</span><p><strong>Steering 不会打断当前工具。</strong>当前 Turn 的工具全部完成、<code>turn_end</code> 发出后，Loop 才注入 steering。</p></div>
+  </article>
+  <article>
+    <div class="misconception-corrections__side misconception-corrections__side--wrong"><span>误解</span><strong>并行执行会打乱 tool results 的持久化顺序</strong></div>
+    <div class="misconception-corrections__side misconception-corrections__side--right"><span>正解</span><p><strong>并行只会让完成事件乱序。</strong>持久化 tool results 时，Pi 仍会恢复 assistant 源顺序。</p></div>
+  </article>
+  <article>
+    <div class="misconception-corrections__side misconception-corrections__side--wrong"><span>误解</span><strong>收到 <code>agent_end</code>，Run 就已经 idle</strong></div>
+    <div class="misconception-corrections__side misconception-corrections__side--right"><span>正解</span><p><strong><code>agent_end</code> 还不是 idle。</strong>异步 listeners 处理完最后一个事件后，Run 才 settled。</p></div>
+  </article>
+</section>
 
 ## 本章证据地图
 

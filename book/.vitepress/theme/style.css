@@ -588,6 +588,72 @@ body {
   line-height: 1.7;
 }
 
+.misconception-corrections {
+  display: grid;
+  gap: 12px;
+  margin: 28px 0 42px;
+}
+
+.misconception-corrections > article {
+  display: grid;
+  grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  background: var(--vp-c-bg-soft);
+}
+
+.misconception-corrections__side {
+  min-width: 0;
+  padding: 18px 20px 20px;
+}
+
+.misconception-corrections__side--wrong {
+  border-right: 1px solid color-mix(in srgb, var(--prb-coral) 34%, var(--vp-c-divider));
+  background: color-mix(in srgb, var(--prb-coral) 7%, var(--vp-c-bg));
+}
+
+.misconception-corrections__side--right {
+  background: color-mix(in srgb, var(--vp-c-brand-1) 7%, var(--vp-c-bg));
+}
+
+.misconception-corrections__side > span {
+  display: inline-block;
+  margin-bottom: 9px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.misconception-corrections__side--wrong > span,
+.misconception-corrections__side--wrong > strong {
+  color: var(--prb-coral);
+}
+
+.misconception-corrections__side--right > span,
+.misconception-corrections__side--right p > strong {
+  color: var(--vp-c-brand-1);
+}
+
+.misconception-corrections__side > strong,
+.misconception-corrections__side p > strong {
+  display: block;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.misconception-corrections__side p {
+  margin: 0;
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+  line-height: 1.72;
+}
+
+.misconception-corrections__side p > strong {
+  margin-bottom: 2px;
+}
+
 .chapter-summary {
   margin: 42px 0 24px;
   padding: 28px;
@@ -924,6 +990,15 @@ body {
   .misconception-list > div {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+
+  .misconception-corrections > article {
+    grid-template-columns: 1fr;
+  }
+
+  .misconception-corrections__side--wrong {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--prb-coral) 34%, var(--vp-c-divider));
   }
 
   .loop-trace__header {
