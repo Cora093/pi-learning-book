@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { BookOpen, Braces, Database, FileText, Gauge, Layers3, Scissors, Wrench } from "@lucide/vue";
 
 type BlockState = "included" | "summary" | "deferred" | "filtered";
+type BudgetVerdict = "fits" | "compact" | "overflow";
 
 interface ContextBlock {
   id: string;
@@ -76,14 +77,40 @@ const strategies: Strategy[] = [
 
 const activeStrategyId = ref(strategies[0].id);
 const contextWindow = ref(64000);
+const windowPresets = [32000, 64000, 128000] as const;
+/** Coding Agent 默认 reserveTokens。v0.84.3 compaction.ts · DEFAULT_COMPACTION_SETTINGS / shouldCompact */
+const reserveTokens = 16384;
 const activeStrategy = computed(() => strategies.find((strategy) => strategy.id === activeStrategyId.value) ?? strategies[0]);
-const includedTokens = computed(() =>
-  activeStrategy.value.blocks
-    .filter((block) => block.state === "included" || block.state === "summary")
-    .reduce((sum, block) => sum + block.tokens, 0),
+const includedBlocks = computed(() =>
+  activeStrategy.value.blocks.filter((block) => block.state === "included" || block.state === "summary"),
 );
-const usedPercent = computed(() => Math.min(100, Math.round((includedTokens.value / contextWindow.value) * 100)));
-const headroom = computed(() => Math.max(0, contextWindow.value - includedTokens.value));
+const includedTokens = computed(() => includedBlocks.value.reduce((sum, block) => sum + block.tokens, 0));
+const compactThreshold = computed(() => Math.max(0, contextWindow.value - reserveTokens));
+const scaleTokens = computed(() => Math.max(contextWindow.value, includedTokens.value, 1));
+const verdict = computed<BudgetVerdict>(() => {
+  if (includedTokens.value > contextWindow.value) return "overflow";
+  if (includedTokens.value > compactThreshold.value) return "compact";
+  return "fits";
+});
+const verdictCopy: Record<BudgetVerdict, { label: string; detail: string }> = {
+  fits: { label: "可发出", detail: "请求低于压缩阈值，这一轮可以原样组装。" },
+  compact: { label: "将触发压缩", detail: "请求超过 contextWindow − reserveTokens，自动压缩会先动手。" },
+  overflow: { label: "超出窗口", detail: "请求已经大于 context window，不能原样发给模型。" },
+};
+const leftoverLabel = computed(() => {
+  if (verdict.value === "overflow") return `溢出 ${formatK(includedTokens.value - contextWindow.value)}`;
+  if (verdict.value === "compact") return `超阈值 ${formatK(includedTokens.value - compactThreshold.value)}`;
+  return `距阈值 ${formatK(compactThreshold.value - includedTokens.value)}`;
+});
+
+function formatK(tokens: number) {
+  const kilo = tokens / 1000;
+  return `${kilo >= 10 && kilo % 1 === 0 ? kilo.toFixed(0) : kilo.toFixed(1)}k`;
+}
+
+function tokenPercent(tokens: number) {
+  return `${(tokens / scaleTokens.value) * 100}%`;
+}
 
 const stateLabel: Record<BlockState, string> = {
   included: "IN",
@@ -111,18 +138,86 @@ const stateLabel: Record<BlockState, string> = {
       </div>
     </header>
 
-    <div class="context-composer__budget">
-      <div class="context-composer__budget-title">
-        <Gauge :size="17" aria-hidden="true" />
-        <span>教学预算</span>
-        <strong>{{ (contextWindow / 1000).toFixed(0) }}k</strong>
+    <div class="context-composer__budget" :data-verdict="verdict">
+      <div class="context-composer__budget-head">
+        <div class="context-composer__budget-title">
+          <Gauge :size="17" aria-hidden="true" />
+          <span>窗口预算</span>
+          <strong>{{ formatK(contextWindow) }}</strong>
+        </div>
+        <div class="context-composer__window-presets" role="group" aria-label="常见 Context Window">
+          <button
+            v-for="preset in windowPresets"
+            :key="preset"
+            type="button"
+            :class="{ 'is-active': contextWindow === preset }"
+            :aria-pressed="contextWindow === preset"
+            @click="contextWindow = preset"
+          >{{ formatK(preset) }}</button>
+        </div>
+        <div class="context-composer__budget-stats">
+          <span>请求 {{ formatK(includedTokens) }}</span>
+          <span>阈值 {{ formatK(compactThreshold) }}</span>
+          <span>{{ leftoverLabel }}</span>
+        </div>
       </div>
-      <input v-model.number="contextWindow" type="range" min="32000" max="128000" step="8000" aria-label="教学 Context Window" />
-      <div class="context-composer__meter" aria-hidden="true"><span :style="{ width: `${usedPercent}%` }"></span></div>
-      <div class="context-composer__budget-stats">
-        <span>请求 {{ (includedTokens / 1000).toFixed(1) }}k</span>
-        <span>余量 {{ (headroom / 1000).toFixed(1) }}k</span>
+
+      <label class="context-composer__slider">
+        <span aria-hidden="true">32k</span>
+        <input
+          v-model.number="contextWindow"
+          type="range"
+          min="32000"
+          max="128000"
+          step="8000"
+          aria-label="Context Window，32k 到 128k"
+          :aria-valuetext="formatK(contextWindow)"
+        />
+        <span aria-hidden="true">128k</span>
+      </label>
+
+      <div
+        class="context-composer__track"
+        role="img"
+        :aria-label="`请求 ${formatK(includedTokens)}，窗口 ${formatK(contextWindow)}，压缩阈值 ${formatK(compactThreshold)}，${verdictCopy[verdict].label}`"
+      >
+        <span
+          class="context-composer__reserve"
+          :style="{ left: tokenPercent(compactThreshold), width: tokenPercent(Math.min(reserveTokens, contextWindow)) }"
+        ></span>
+        <span
+          v-if="verdict === 'overflow'"
+          class="context-composer__window-mark"
+          :style="{ left: tokenPercent(contextWindow) }"
+        ></span>
+        <span
+          v-if="verdict === 'overflow'"
+          class="context-composer__overflow"
+          :style="{ left: tokenPercent(contextWindow), width: tokenPercent(includedTokens - contextWindow) }"
+        ></span>
+        <span
+          class="context-composer__threshold"
+          :style="{ left: tokenPercent(compactThreshold) }"
+          title="压缩阈值 contextWindow − reserveTokens"
+        ></span>
+        <div class="context-composer__fill">
+          <span
+            v-for="block in includedBlocks"
+            :key="block.id"
+            :class="`state-${block.state}`"
+            :style="{ width: tokenPercent(block.tokens) }"
+            :title="`${block.label} ${formatK(block.tokens)}`"
+          ></span>
+        </div>
       </div>
+
+      <p class="context-composer__verdict" aria-live="polite">
+        <strong>{{ verdictCopy[verdict].label }}</strong>
+        {{ verdictCopy[verdict].detail }}
+      </p>
+      <p class="context-composer__budget-hint">
+        拖动窗口或选择 32k / 64k / 128k，比较同一请求在不同 context window 下的压力。黄线是压缩阈值 window − reserveTokens（默认 16384）。
+      </p>
     </div>
 
     <p class="context-composer__caption">{{ activeStrategy.caption }}</p>
@@ -144,7 +239,7 @@ const stateLabel: Record<BlockState, string> = {
         <div><strong>systemPrompt</strong><span>独立字符串</span></div>
         <div><strong>messages</strong><span>transform → convert</span></div>
         <div><strong>tools</strong><span>当前 Tool schemas</span></div>
-        <p>滑块中的 token 数值用于比较策略，不是 Pi 对这段示例数据的实测值。</p>
+        <p>窗口与 token 数值用于比较策略，不是 Pi 对这段示例数据的实测值。压缩阈值来自固定源码默认 reserveTokens。</p>
       </aside>
     </div>
   </section>
@@ -215,11 +310,16 @@ const stateLabel: Record<BlockState, string> = {
 
 .context-composer__budget {
   display: grid;
-  grid-template-columns: 130px minmax(160px, 1fr) minmax(120px, 0.7fr) 160px;
-  align-items: center;
-  gap: 18px;
-  padding: 14px 28px;
+  gap: 12px;
+  padding: 16px 28px 14px;
   border-bottom: 1px solid #33413e;
+}
+
+.context-composer__budget-head {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
 }
 
 .context-composer__budget-title,
@@ -233,25 +333,132 @@ const stateLabel: Record<BlockState, string> = {
 
 .context-composer__budget-title { color: #f0cd6a; }
 .context-composer__budget-title strong { color: #f3f0e8; }
-.context-composer__budget-stats { justify-content: flex-end; color: #a9b4b0; }
+.context-composer__budget-stats {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  color: #a9b4b0;
+}
+
+.context-composer__window-presets {
+  display: inline-grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #33413e;
+  border-radius: 5px;
+}
+
+.context-composer__slider {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 8px;
+  color: #788682;
+  font-family: var(--vp-font-family-mono);
+  font-size: 10px;
+}
 
 .context-composer input[type="range"] {
   width: 100%;
   accent-color: #ff9f89;
 }
 
-.context-composer__meter {
-  height: 4px;
-  overflow: hidden;
+.context-composer__budget[data-verdict="fits"] input[type="range"] { accent-color: #8de6c0; }
+.context-composer__budget[data-verdict="compact"] input[type="range"] { accent-color: #f0cd6a; }
+.context-composer__budget[data-verdict="overflow"] input[type="range"] { accent-color: #ff9f89; }
+
+.context-composer__track {
+  position: relative;
+  height: 14px;
   background: #2b3532;
 }
 
-.context-composer__meter span {
-  display: block;
+.context-composer__fill {
+  position: relative;
+  z-index: 1;
+  display: flex;
   height: 100%;
-  background: #ff9f89;
+  overflow: hidden;
+}
+
+.context-composer__fill span {
+  display: block;
+  flex: 0 0 auto;
+  height: 100%;
+  box-shadow: inset -1px 0 0 #101513;
   transition: width 180ms ease;
 }
+
+.context-composer__fill span.state-included { background: #8de6c0; }
+.context-composer__fill span.state-included:nth-child(even) { background: #5fbf9a; }
+.context-composer__fill span.state-summary { background: #f0cd6a; }
+
+.context-composer__reserve {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: repeating-linear-gradient(
+    -55deg,
+    rgba(240, 205, 106, 0.16),
+    rgba(240, 205, 106, 0.16) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.context-composer__reserve,
+.context-composer__overflow,
+.context-composer__threshold,
+.context-composer__window-mark {
+  pointer-events: none;
+}
+
+.context-composer__threshold,
+.context-composer__window-mark {
+  position: absolute;
+  top: 0;
+  z-index: 3;
+  width: 2px;
+  height: 100%;
+}
+
+.context-composer__threshold { background: #f0cd6a; }
+.context-composer__window-mark { background: #ff9f89; }
+
+.context-composer__overflow {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    -55deg,
+    rgba(255, 159, 137, 0.55),
+    rgba(255, 159, 137, 0.55) 4px,
+    rgba(255, 159, 137, 0.18) 4px,
+    rgba(255, 159, 137, 0.18) 8px
+  );
+}
+
+.context-composer__verdict,
+.context-composer__budget-hint {
+  margin: 0;
+  color: #a9b4b0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.context-composer__budget-hint {
+  color: #788682;
+  font-size: 11px;
+}
+
+.context-composer__verdict strong {
+  margin-right: 8px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+}
+
+.context-composer__budget[data-verdict="fits"] .context-composer__verdict strong { color: #8de6c0; }
+.context-composer__budget[data-verdict="compact"] .context-composer__verdict strong { color: #f0cd6a; }
+.context-composer__budget[data-verdict="overflow"] .context-composer__verdict strong { color: #ff9f89; }
 
 .context-composer__caption {
   min-height: 48px;
@@ -347,7 +554,9 @@ const stateLabel: Record<BlockState, string> = {
 @media (max-width: 760px) {
   .context-composer > header { align-items: flex-start; flex-direction: column; padding: 22px 18px 18px; }
   .context-composer__strategies { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .context-composer__budget { grid-template-columns: 1fr; gap: 10px; padding: 16px 18px; }
+  .context-composer__budget { padding: 16px 18px; }
+  .context-composer__budget-head { grid-template-columns: 1fr; gap: 10px; }
+  .context-composer__window-presets { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .context-composer__budget-stats { justify-content: space-between; }
   .context-composer__caption { min-height: 68px; padding: 13px 18px; }
   .context-composer__body { grid-template-columns: 1fr; }
