@@ -9,10 +9,18 @@ if [ -s "$NVM_DIR/nvm.sh" ]; then
   if command -v nvm >/dev/null 2>&1; then
     node_bin="$(dirname "$(nvm which default 2>/dev/null)" 2>/dev/null)"
     if [ -n "$node_bin" ] && [ -x "$node_bin/node" ]; then
-      case ":$PATH:" in
-        *":$node_bin:"*) ;;
-        *) export PATH="$node_bin:$PATH" ;;
-      esac
+      # The base image ships an older node earlier in PATH (/exec-daemon/node) and
+      # may already include this nvm bin later in PATH. Rebuild PATH without any
+      # existing occurrence, then prepend it, so the compliant node always wins.
+      new_path=""
+      old_ifs="$IFS"
+      IFS=":"
+      for entry in $PATH; do
+        [ "$entry" = "$node_bin" ] && continue
+        if [ -z "$new_path" ]; then new_path="$entry"; else new_path="$new_path:$entry"; fi
+      done
+      IFS="$old_ifs"
+      export PATH="$node_bin:$new_path"
     fi
   fi
 fi
