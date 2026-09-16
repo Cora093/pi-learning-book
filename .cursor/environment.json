@@ -1,0 +1,10 @@
+{
+  "name": "Pi Runtime Book",
+  "install": ". .cursor/env.sh && git submodule update --init --recursive && pnpm install --frozen-lockfile",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": ". .cursor/env.sh && pnpm dev"
+    }
+  ]
+}
